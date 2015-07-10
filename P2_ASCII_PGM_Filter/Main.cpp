@@ -183,16 +183,15 @@ void serialSobelFilter(int * image_array, int width, int height){
 	//Copy filtered data back to oringal array
 	memcpy(image_array, filtered_ia, sizeof(filtered_ia));
 	free(filtered_ia);
-
 	cout << "Finished Applying Sobel Filter." << endl << endl;
 }
 
-//First-chance exception at 0x00007FF6E5FD327B in MySobelFilter.exe: 0xC0000005: Access violation reading location 0x0000000000000000.
+//First-chance exception at 0x0093E565 in P2_ASCII_PGM_Filter.exe: 0xC0000005: Access violation reading location 0x00000000.
 void serialBlurFilter(int * image_array, int width, int height){
 	cout << "Applying Blur Filter..." << endl;
 
 	//Make array to hold new, filtered values of the image array.
-	int * filtered_ia = (int *)malloc(sizeof(image_array));
+	int * filtered_ia = (int *)malloc(sizeof(int)*width*height);
 
 	for (int r = 0; r < height; r++){
 		for (int c = 0; c < width; c++){
@@ -206,7 +205,7 @@ void serialBlurFilter(int * image_array, int width, int height){
 	}
 
 	//Copy filtered data back to oringal array
-	memcpy(image_array, filtered_ia, sizeof(filtered_ia));
+	memcpy(image_array, filtered_ia, sizeof(int)*width*height);
 	free(filtered_ia);
 
 	cout << "Finished Applying Blur Filter." << endl << endl;
@@ -224,7 +223,7 @@ int main(void){
 	loadImage(image_array, width, height, grayscale);
 
 	//serialSobelFilter(image_array, *width, *height);
-	//serialBlurFilter(image_array, *width, *height);
+	serialBlurFilter(image_array, *width, *height);
 
 	saveImage(image_array, *width, *height, *grayscale);
 
