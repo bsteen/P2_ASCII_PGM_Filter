@@ -1,4 +1,4 @@
-# P2/ASCII PGM (Portable Gray Map) Filter
+# P2/ASCII PGM (Portable Gray Map) Image Filter
 An image processing program that uses C++ and CUDA. This program includes two methods of processing image data and applying filters:
 -	Through C++ functions (Serial Processing)
 -	Through Nvidia’s CUDA kernels (Parallel Processing)
