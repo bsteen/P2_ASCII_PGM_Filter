@@ -7,3 +7,5 @@ This program takes in a valid P2 (ASCII Encoded) .PGM file and outputs a new .PG
 .PGM files must have dimensions no greater than 1024x1024 (arbitrary limit).
 
 Currently, no CUDA methods/kernels have been implemented.
+
+Sample P2 .PGM files used in this project were obtained at: http://people.sc.fsu.edu/~jburkardt/data/pgma/pgma.html
