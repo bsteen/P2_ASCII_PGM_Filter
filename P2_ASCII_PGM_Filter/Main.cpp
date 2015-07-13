@@ -141,14 +141,13 @@ int* add1pxBorder(int const * in_arr, int const width, int const height){
 	return out;
 }
 
+//Works somewhat. Still Leaves junk on left and bottom of image.
 int* remove1pxBorder(int const * in_arr, int const width, int const height){
 
 	int * out_arr = (int*)malloc(sizeof(int)*width * height);
 
-	for (int y = 1; y < height; y++){
-		for (int x = 1; y < width; x++){
-			memcpy(&out_arr[(y - 1)*width + (x - 1)], &in_arr[y * width + x], sizeof(int));
-		}
+	for (int y = 0; y < height; y++){
+		memcpy(&out_arr[y*width], &in_arr[(y+1)*(width+2) + 1], sizeof(int)*width);
 	}
 
 	return out_arr;
