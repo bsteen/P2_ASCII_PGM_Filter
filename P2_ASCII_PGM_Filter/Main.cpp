@@ -100,7 +100,7 @@ void loadImage(int * image_array, int * w, int * h, int * g)
 	cout << "Finished loading image." << endl << endl;
 }
 
-void saveImage(int * image_array, int width, int height, int grayscale){
+void saveImage(int * image_array, const int width, const int height, const int  grayscale){
 	cout << "Saving Image..." << endl;
 	fstream image_out;
 	image_out.open("Images/output.pgm", fstream::out);
@@ -126,89 +126,45 @@ void saveImage(int * image_array, int width, int height, int grayscale){
 	cout << "Image Saved." << endl << endl;
 }
 
-void getSurroundingPixels(int width, int height, int position, int * ul, int * um, int * ur, int * ml, int * mr, int * ll, int * lm, int * lr){
+int* add1pxBorder(int const * in_arr, int const width, int const height){
 
-	if (position % width != 0){//Check that the postion is not on the left edge of the 2D array
-		*ml = position - 1;
-		if (position - height > 0){
-			*ul = *ml - height;
-		}
-		if (position + height < height*width){
-			*ll = *ml + height;
-		}
-	}
+	int W = width + 2, H = height + 2;
+	int * out =  (int*) malloc(sizeof(int)*W * H);
 
-	if (position - height > 0){///Check that the postion is not in the top row of the array.
-		*um = position - height;
-	}
+	memset(&out[0], 0, sizeof(int)*W);
+	memset(&out[W * height], 0, sizeof(int)*W);
 
-	if (position + height < position * width){//Check that the postion is not in the top row of the array.
-		*lm = position + height;
+	for (int y = 0; y < height; y++){
+		out[(y+1)*W] = out[(y+1)*W + width] = 0;
+		memcpy(&out[(y + 1)*W + 1], &in_arr[y*width], sizeof(int)*width);
 	}
-
-	if ((position + 1) % width != 0){//Check that the postion is not on the right edge of the 2D array
-		*mr = position + 1;
-		if (position - height  > 0){
-			*ur = *mr - height;
-		}
-		if (position + height < height*width){
-			*lr = *mr + height;
-		}
-	}
+	return out;
 }
 
-//Broken
-void serialSobelFilter(int * image_array, int width, int height){
-	cout << "Applying Sobel Filter..." << endl;
 
-	//Make array to hold new, filtered values of the image array.
-	int * filtered_ia = (int *)malloc(sizeof(image_array));
+void apply2dStencil3x3(int const  * in_arr, int  * out_arr, int const width, int const height, float const stencil[3][3]){
+	cout << "Applying Filter..." << endl;
+	
+	for (int y = 1; y < height - 1; y++){
+		for (int x = 1; x < width - 1; x++){
 
-	for (int r = 0; r < height; r++){
-		for (int c = 0; c < width; c++){
-			int mm = r*width + c;//Row Major layout
-			int * ul = 0, *um = 0, *ur = 0, *ml = 0, *mr = 0, *ll = 0, *lm = 0, *lr = 0;
+			int p = y * width + x;
 
-			getSurroundingPixels(width, height, mm, ul, um, ur, ml, mr, ll, lm, lr);
+			float ul = (float)(in_arr[p - width - 1]) * stencil[0][0];
+			float um = (float)(in_arr[p - width]) * stencil[0][1];
+			float ur = (float)(in_arr[p - width + 1]) * stencil[0][2];
 
-			int horz = image_array[*ur] + 2 * image_array[*mr] + image_array[*lr] - image_array[*ul] - 2 * image_array[*ml] - image_array[*ll];
-			int vert = image_array[*ul] + 2 * image_array[*um] + image_array[*ur] - image_array[*ll] - 2 * image_array[*lm] - image_array[*lr];
-			filtered_ia[mm] = abs(horz) + abs(vert);
+			float ml = (float)(in_arr[p - 1]) * stencil[1][0];
+			float mm = (float)(in_arr[p]) *stencil[1][1];
+			float mr = (float)(in_arr[p + 1]) * stencil[1][2];
+
+			float ll = (float)(in_arr[p + width - 1]) * stencil[2][0];
+			float lm = (float)(in_arr[p + width]) * stencil[2][1];
+			float lr = (float)(in_arr[p + width + 1]) * stencil[2][2];
+
+			out_arr[p] = (int) (ul + um + ur + ml + mm + mr + ll + lm + lr);
 		}
 	}
-
-	//Free orginal array
-	free(image_array);
-
-	//Copy filtered data back to oringal array
-	memcpy(image_array, filtered_ia, sizeof(filtered_ia));
-	free(filtered_ia);
-	cout << "Finished Applying Sobel Filter." << endl << endl;
-}
-
-//First-chance exception at 0x0093E565 in P2_ASCII_PGM_Filter.exe: 0xC0000005: Access violation reading location 0x00000000.
-void serialBlurFilter(int * image_array, int width, int height){
-	cout << "Applying Blur Filter..." << endl;
-
-	//Make array to hold new, filtered values of the image array.
-	int * filtered_ia = (int *)malloc(sizeof(int)*width*height);
-
-	for (int r = 0; r < height; r++){
-		for (int c = 0; c < width; c++){
-			int mm = r*width + c;//Row Major layout
-
-			int *ul = 0, *um = 0, *ur = 0, *ml = 0, *mr = 0, *ll = 0, *lm = 0, *lr = 0;
-			//getSurroundingPixels(width, height, mm, ul, um, ur, ml, mr, ll, lm, lr);
-
-			filtered_ia[mm] = (*ul + *um + *ur + *ml + *mr + *ll + *lm + *lr) / 8;
-		}
-	}
-
-	//Copy filtered data back to oringal array
-	memcpy(image_array, filtered_ia, sizeof(int)*width*height);
-	free(filtered_ia);
-
-	cout << "Finished Applying Blur Filter." << endl << endl;
 }
 
 int main(void){
@@ -216,21 +172,21 @@ int main(void){
 
 	//If you want bigger image files to be accpeted, change this allocated memory size accordingly.
 	int * image_array = (int *)malloc(sizeof(int) * 1048576);//1024*1024 = 1048576
-	int * width = (int *)malloc(sizeof(int));
-	int * height = (int *)malloc(sizeof(int));
-	int * grayscale = (int *)malloc(sizeof(int));
+	int height, width, grayscale;
 
-	loadImage(image_array, width, height, grayscale);
+	loadImage(image_array, &width, &height, &grayscale);
 
-	//serialSobelFilter(image_array, *width, *height);
-	serialBlurFilter(image_array, *width, *height);
+	int * expanded = add1pxBorder(image_array, width, height);
+	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width * 2));
 
-	saveImage(image_array, *width, *height, *grayscale);
+	const float blur_stencil[3][3] = { { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 } };
+
+	apply2dStencil3x3(expanded, outimg, width + 2, height + 2, blur_stencil);
+	saveImage(outimg, width+2, height+2, grayscale);
 
 	free(image_array);
-	free(width);
-	free(height);
-	free(grayscale);
+	free(expanded);
+	free(outimg);
 
 	cout << "Done." << endl;
 	return 0;
