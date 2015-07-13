@@ -141,8 +141,20 @@ int* add1pxBorder(int const * in_arr, int const width, int const height){
 	return out;
 }
 
+int* remove1pxBorder(int const * in_arr, int const width, int const height){
 
-void apply2dStencil3x3(int const  * in_arr, int  * out_arr, int const width, int const height, float const stencil[3][3]){
+	int * out_arr = (int*)malloc(sizeof(int)*width * height);
+
+	for (int y = 1; y < height; y++){
+		for (int x = 1; y < width; x++){
+			memcpy(&out_arr[(y - 1)*width + (x - 1)], &in_arr[y * width + x], sizeof(int));
+		}
+	}
+
+	return out_arr;
+}
+
+void applyblurStencil3x3(int const  * in_arr, int  * out_arr, int const width, int const height, float const stencil[3][3]){
 	cout << "Applying Filter..." << endl;
 	
 	for (int y = 1; y < height - 1; y++){
@@ -178,11 +190,14 @@ int main(void){
 
 	int * expanded = add1pxBorder(image_array, width, height);
 	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width * 2));
-
 	const float blur_stencil[3][3] = { { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 } };
 
-	apply2dStencil3x3(expanded, outimg, width + 2, height + 2, blur_stencil);
-	saveImage(outimg, width+2, height+2, grayscale);
+	applyblurStencil3x3(expanded, outimg, width + 2, height + 2, blur_stencil);
+
+	//Broken
+	int * final_image = remove1pxBorder(outimg, width, height);
+
+	saveImage(final_image, width, height, grayscale);
 
 	free(image_array);
 	free(expanded);
