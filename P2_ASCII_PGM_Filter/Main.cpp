@@ -100,6 +100,16 @@ void loadImage(int * image_array, int * w, int * h, int * g)
 	cout << "Finished loading image." << endl << endl;
 }
 
+void getFilterType(char * t){
+	cout << "Which filter would you like to run?" << endl;
+	cout << "1: Blur Filter" << endl;
+	cout << "2: Sobel Filter" << endl;
+	cin >> std::ws; //Eat up the previous white spaces
+	*t = getchar();
+	cout << "" << endl;
+
+}
+
 void saveImage(int * image_array, const int width, const int height, const int  grayscale){
 	cout << "Saving Image..." << endl;
 	fstream image_out;
@@ -153,8 +163,7 @@ int* remove1pxBorder(int const * in_arr, int const width, int const height){
 	return out_arr;
 }
 
-void applyBlurStencil(int const * in_arr, int  * out_arr, int p, int const width , int const height){
-	const float stencil[3][3] = { { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 } };
+void applyBlurStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height, const float stencil[3][3]){
 	
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0][0];
 	float um = (float)(in_arr[p - width]) * stencil[0][1];
@@ -171,45 +180,55 @@ void applyBlurStencil(int const * in_arr, int  * out_arr, int p, int const width
 	out_arr[p] = (int)(ul + um + ur + ml + mm + mr + ll + lm + lr);
 }
 
-void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height){
-	const int sobelx[3][3] = { { -1, 0 , 1 }, { -2, 0, 2 }, { -1, 0, 1 } };
-	const int sobely[3][3] = { { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
+void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height, const int stencil[6][3]){
 
-	int ul = (in_arr[p - width - 1]) * sobelx[0][0];
-	int um = (in_arr[p - width]) * sobelx[0][1];
-	int ur = (in_arr[p - width + 1]) * sobelx[0][2];
-	int ml = (in_arr[p - 1]) * sobelx[1][0];
-	int mm = (in_arr[p]) *sobelx[1][1];
-	int mr = (in_arr[p + 1]) * sobelx[1][2];
-	int ll = (in_arr[p + width - 1]) * sobelx[2][0];
-	int lm = (in_arr[p + width]) * sobelx[2][1];
-	int lr = (in_arr[p + width + 1]) * sobelx[2][2];
+	int ul = (in_arr[p - width - 1]) * stencil[0][0];
+	int um = (in_arr[p - width]) * stencil[0][1];
+	int ur = (in_arr[p - width + 1]) * stencil[0][2];
+	int ml = (in_arr[p - 1]) * stencil[1][0];
+	int mm = (in_arr[p]) *stencil[1][1];
+	int mr = (in_arr[p + 1]) * stencil[1][2];
+	int ll = (in_arr[p + width - 1]) * stencil[2][0];
+	int lm = (in_arr[p + width]) * stencil[2][1];
+	int lr = (in_arr[p + width + 1]) * stencil[2][2];
 	int x_sum = ul + um + ur + ml + mm + mr + ll + lm + lr;
 
-	ul = (in_arr[p - width - 1]) * sobely[0][0];
-	um = (in_arr[p - width]) * sobely[0][1];
-	ur = (in_arr[p - width + 1]) * sobely[0][2];
-	ml = (in_arr[p - 1]) * sobely[1][0];
-	mm = (in_arr[p]) *sobely[1][1];
-	mr = (in_arr[p + 1]) * sobely[1][2];
-	ll = (in_arr[p + width - 1]) * sobely[2][0];
-	lm = (in_arr[p + width]) * sobely[2][1];
-	lr = (in_arr[p + width + 1]) * sobely[2][2];
+	ul = (in_arr[p - width - 1]) * stencil[3][0];
+	um = (in_arr[p - width]) * stencil[3][1];
+	ur = (in_arr[p - width + 1]) * stencil[3][2];
+	ml = (in_arr[p - 1]) * stencil[4][0];
+	mm = (in_arr[p]) *stencil[4][1];
+	mr = (in_arr[p + 1]) * stencil[4][2];
+	ll = (in_arr[p + width - 1]) * stencil[5][0];
+	lm = (in_arr[p + width]) * stencil[5][1];
+	lr = (in_arr[p + width + 1]) * stencil[5][2];
 	int y_sum = ul + um + ur + ml + mm + mr + ll + lm + lr;
 
 	out_arr[p] = (int)pow((y_sum*y_sum+x_sum*x_sum),0.5);
 }
 
-void runFilter(int const  * in_arr, int  * out_arr, int const width, int const height){
+void runFilter(int const  * in_arr, int  * out_arr, int const width, int const height, char filter_type){
 	cout << "Applying Filter..." << endl;
+
+	float const blur_stencil[3][3] = { { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 } };
+
+	int const sobel_stencil[6][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 },
+									  { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 
 	for (int y = 1; y < height - 1; y++){
 		for (int x = 1; x < width - 1; x++){
 			int p = y * width + x;
-			//applyBlurStencil(in_arr, out_arr, p, width, height);
-			applySobelStencil(in_arr, out_arr, p, width, height);
+			if (filter_type == '1'){
+				applyBlurStencil(in_arr, out_arr, p, width, height, blur_stencil);
+			}
+			else{
+				applySobelStencil(in_arr, out_arr, p, width, height, sobel_stencil);
+			}
 		}
+
 	}
+
+	cout << "Finished Applying Filter." << endl <<endl;
 }
 
 int main(void){
@@ -224,7 +243,10 @@ int main(void){
 	int * expanded = add1pxBorder(image_array, width, height);
 	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width * 2));
 
-	runFilter(expanded, outimg, width + 2, height + 2);
+	char filter_type;
+	getFilterType(&filter_type);
+
+	runFilter(expanded, outimg, width + 2, height + 2,filter_type);
 
 	//Broken
 	int * final_image = remove1pxBorder(outimg, width, height);
