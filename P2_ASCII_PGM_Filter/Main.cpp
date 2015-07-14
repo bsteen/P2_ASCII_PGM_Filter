@@ -8,10 +8,9 @@
 #include <sstream>//string stream
 using namespace std;
 
-void loadImage(int * image_array, int * w, int * h, int * g)
+void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 {
-	char ch;
-	string image_name;
+	string image_path;
 	string line;
 	int width;
 	int height;
@@ -19,25 +18,14 @@ void loadImage(int * image_array, int * w, int * h, int * g)
 	string dimensions[2];
 	int i = 0;
 
-	cout << "Load which image from Images subfolder? (l=lenap2.pgm, p=pepperp2.pgm)" << endl;
-	ch = getchar();
+	cout << "Load which image from Images subfolder? (File name only)" << endl;
+	getline(cin, *file);
 
-	switch (ch){
-	case 'l':
-		cout << endl << "Loading image lenap2.pgm from Images..." << endl;
-		image_name = "Images/lenap2.pgm";
-		break;
-	case 'p':
-		cout << endl << "Loading image pepperp2.pgm from Images..." << endl;
-		image_name = "Images/pepperp2.pgm";
-		break;
-	default:
-		cout << endl << "ERROR: File not found." << endl;
-		exit(EXIT_FAILURE);
-	}
+	cout << endl << "Loading image \""+ *file +".pgm\" from Images..." << endl;
+	image_path ="Images/" +*file + ".pgm";
 
 	//Load .pgm (P2/ASCII Format) Image into a 2D short array.
-	ifstream image_in(image_name);
+	ifstream image_in(image_path);
 	if (image_in)
 	{
 		getline(image_in, line);//Get .pgm "Magic number"
@@ -102,18 +90,33 @@ void loadImage(int * image_array, int * w, int * h, int * g)
 
 void getFilterType(char * t){
 	cout << "Which filter would you like to run?" << endl;
-	cout << "1: Blur Filter" << endl;
-	cout << "2: Sobel Filter" << endl;
-	cin >> std::ws; //Eat up the previous white spaces
+	cout << "1: Blur" << endl;
+	cout << "2: Sharpen" << endl;
+	cout << "3: Edge Enhance" << endl;
+	cout << "4: Sobel Operator" << endl;
+	cin >> std::ws; //Eat up the previous white spaces in buffer
 	*t = getchar();
-	cout << "" << endl;
+	cout << endl;
 
 }
 
-void saveImage(int * image_array, const int width, const int height, const int  grayscale){
-	cout << "Saving Image..." << endl;
+void getFilterPasses(int * num, char type){
+	if (type=='4'){
+		*num = 1;
+	}
+	else{
+		cout << "How many times would you like to run the filter?" << endl;
+		cin >> std::ws;
+		string in;
+		getline(cin, in);
+		*num = stoi(in);
+	}
+}
+
+void saveImage(int * image_array, const int width, const int height, const int  grayscale, string file_name){
+	cout << "Saving Image as "+ file_name +"_output.pgm..." << endl;
 	fstream image_out;
-	image_out.open("Images/output.pgm", fstream::out);
+	image_out.open("Images/"+ file_name + "_output.pgm", fstream::out);
 
 	image_out << "P2" << endl;
 	image_out << "#P2/ASCII PGM (Portable Gray Map) Sobel Filter Output Image" << endl;
@@ -136,16 +139,16 @@ void saveImage(int * image_array, const int width, const int height, const int  
 	cout << "Image Saved." << endl << endl;
 }
 
-int* add1pxBorder(int const * in_arr, int const width, int const height){
+int* add1pxBorder(int const * in_arr, int const width, int const height, int grayscale){
 
 	int W = width + 2, H = height + 2;
 	int * out = (int*)malloc(sizeof(int)*W * H);
 
-	memset(&out[0], 0, sizeof(int)*W);
-	memset(&out[W * height], 0, sizeof(int)*W);
+	memset(&out[0], grayscale/2, sizeof(int)*W);
+	memset(&out[W * height], grayscale/2, sizeof(int)*W);
 
 	for (int y = 0; y < height; y++){
-		out[(y + 1)*W] = out[(y + 1)*W + width] = 0;
+		out[(y + 1)*W] = out[(y + 1)*W + width] = grayscale/2;
 		memcpy(&out[(y + 1)*W + 1], &in_arr[y*width], sizeof(int)*width);
 	}
 	return out;
@@ -163,7 +166,7 @@ int* remove1pxBorder(int const * in_arr, int const width, int const height){
 	return out_arr;
 }
 
-void applyBlurStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height, const float stencil[3][3]){
+void applyConvolutionStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height, const float stencil[3][3]){
 	
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0][0];
 	float um = (float)(in_arr[p - width]) * stencil[0][1];
@@ -210,48 +213,61 @@ void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const widt
 void runFilter(int const  * in_arr, int  * out_arr, int const width, int const height, char filter_type){
 	cout << "Applying Filter..." << endl;
 
-	float const blur_stencil[3][3] = { { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 }, { 1. / 9, 1. / 9, 1. / 9 } };
-
-	int const sobel_stencil[6][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 },
-									  { -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
-
-	for (int y = 1; y < height - 1; y++){
-		for (int x = 1; x < width - 1; x++){
-			int p = y * width + x;
-			if (filter_type == '1'){
-				applyBlurStencil(in_arr, out_arr, p, width, height, blur_stencil);
-			}
-			else{
-				applySobelStencil(in_arr, out_arr, p, width, height, sobel_stencil);
+		for (int y = 1; y < height - 1; y++){
+			for (int x = 1; x < width - 1; x++){
+				int p = y * width + x;
+				if (filter_type == '1'){//Blur
+					float const blur_stencil[3][3] = { { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, blur_stencil);
+				}
+				else if (filter_type == '2'){//Sharpen
+					float const sharpen_stencil[3][3] = { { 0, -1, 0 }, { -1, 5, -1 }, { 0, -1, 0 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, sharpen_stencil);
+				}
+				else if (filter_type == '3'){//Edge Enhance
+					float const egde_e_stencil[3][3] = { { 0, 0, 0 }, { -1, 1, 0 }, { 0, 0, 0 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, egde_e_stencil);
+				}
+				else{
+					int const sobel_stencil[6][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 },
+					{ -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
+					applySobelStencil(in_arr, out_arr, p, width, height, sobel_stencil);
+				}
 			}
 		}
-
-	}
-
 	cout << "Finished Applying Filter." << endl <<endl;
 }
 
 int main(void){
-	cout << "P2/ASCII PGM (Portable Gray Map) 1024x1024  Blur & Sobel Filter" << endl << endl;
+	cout << "P2/ASCII PGM (Portable Gray Map) 1024x1024 Filter" << endl << endl;
 
 	//If you want bigger image files to be accpeted, change this allocated memory size accordingly.
 	int * image_array = (int *)malloc(sizeof(int) * 1048576);//1024*1024 = 1048576
 	int height, width, grayscale;
+	string file_name;
 
-	loadImage(image_array, &width, &height, &grayscale);
+	loadImage(image_array, &width, &height, &grayscale, &file_name);
 
-	int * expanded = add1pxBorder(image_array, width, height);
+	int * expanded = add1pxBorder(image_array, width, height, grayscale);
 	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width * 2));
 
 	char filter_type;
 	getFilterType(&filter_type);
 
-	runFilter(expanded, outimg, width + 2, height + 2,filter_type);
+	int filter_passes;
+	getFilterPasses(&filter_passes, filter_type);
+	cout<<endl;
+	
+	for (int c = 0; c < filter_passes; c++){
+		runFilter(expanded, outimg, width + 2, height + 2, filter_type);
+		int *temp=remove1pxBorder(outimg, width, height);
+		int *temp2 = add1pxBorder(temp, width, height, grayscale);
+		memcpy(expanded, temp2, sizeof(int)*(width + 2)*(height+2));
+	}
 
-	//Broken
 	int * final_image = remove1pxBorder(outimg, width, height);
 
-	saveImage(final_image, width, height, grayscale);
+	saveImage(final_image, width, height, grayscale, file_name);
 
 	free(image_array);
 	free(expanded);
