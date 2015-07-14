@@ -1,6 +1,7 @@
 //Header Files
 #include <stdlib.h>
 #include <stdio.h>
+#include "KernelH.cuh"
 
 //C++ Files
 #include <iostream>
@@ -94,8 +95,10 @@ void getFilterType(char * t){
 	cout << "2: Gaussian Approx. (Serial)" << endl;
 	cout << "3: Sharpen (Serial)" << endl;
 	cout << "4: Salt and Pepper (Serial)" << endl;
-	cout << "5: Edge Detection (Serial)" << endl;
-	cout << "6: Sobel Operator (Serial)" << endl;
+	cout << "5: Emboss (Serial)" << endl;
+	cout << "6: Edge Detection (Serial)" << endl;
+	cout << "7: Sobel Operator (Serial)" << endl;
+	cout << "8: Box Blur (CUDA)" << endl;
 	cin >> std::ws; //Eat up the previous white spaces in buffer
 	*t = getchar();
 	cout << endl;
@@ -229,7 +232,11 @@ void runFilter(int const  * in_arr, int  * out_arr, int const width, int const h
 					float const egde_e_stencil[3][3] = { { 0, 0, 0 }, { -1, 1, 0 }, { 0, 0, 0 } };
 					applyConvolutionStencil(in_arr, out_arr, p, width, height, egde_e_stencil);
 				}
-				else if (filter_type == '5'){//Edge Detection
+				else if (filter_type == '5'){//Emboss
+					float const egde_e_stencil[3][3] = { { -2, -1, 0 }, { -1, 1, 1 }, { 0, 1, 2 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, egde_e_stencil);
+				}
+				else if (filter_type == '6'){//Edge Detection
 					float const egde_e_stencil[3][3] = { { -1, -1, -1 }, { -1, 8, -1 }, { -1, -1, -1 } };
 					applyConvolutionStencil(in_arr, out_arr, p, width, height, egde_e_stencil);
 				}
@@ -263,11 +270,16 @@ int main(void){
 	getFilterPasses(&filter_passes, filter_type);
 	cout<<endl;
 	
-	for (int c = 0; c < filter_passes; c++){
-		runFilter(expanded, outimg, width + 2, height + 2, filter_type);
-		int *temp=remove1pxBorder(outimg, width, height);
-		int *temp2 = add1pxBorder(temp, width, height, grayscale);
-		memcpy(expanded, temp2, sizeof(int)*(width + 2)*(height+2));
+	if(filter_type<8){//For serial filters
+		for (int c = 0; c < filter_passes; c++){
+			runFilter(expanded, outimg, width + 2, height + 2, filter_type);
+			int *temp = remove1pxBorder(outimg, width, height);
+			int *temp2 = add1pxBorder(temp, width, height, grayscale);
+			memcpy(expanded, temp2, sizeof(int)*(width + 2)*(height + 2));
+		}
+	}
+	else{//For CUDA Filters
+		prepareKernel(expanded, outimg, width + 2, height + 2, filter_type);
 	}
 
 	int * final_image = remove1pxBorder(outimg, width, height);

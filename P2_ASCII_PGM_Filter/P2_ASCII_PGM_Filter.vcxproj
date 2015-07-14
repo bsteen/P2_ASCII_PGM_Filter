@@ -21,6 +21,12 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Kernel.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="KernelH.cuh" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{397A2DA8-31EF-455F-9672-5552FCBDEDE6}</ProjectGuid>
     <RootNamespace>P2_ASCII_PGM_Filter</RootNamespace>
