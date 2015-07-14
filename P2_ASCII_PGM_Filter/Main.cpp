@@ -90,10 +90,12 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 
 void getFilterType(char * t){
 	cout << "Which filter would you like to run?" << endl;
-	cout << "1: Blur" << endl;
-	cout << "2: Sharpen" << endl;
-	cout << "3: Edge Enhance" << endl;
-	cout << "4: Sobel Operator" << endl;
+	cout << "1: Box Blur (Serial)" << endl;
+	cout << "2: Gaussian Approx. (Serial)" << endl;
+	cout << "3: Sharpen (Serial)" << endl;
+	cout << "4: Salt and Pepper (Serial)" << endl;
+	cout << "5: Edge Detection (Serial)" << endl;
+	cout << "6: Sobel Operator (Serial)" << endl;
 	cin >> std::ws; //Eat up the previous white spaces in buffer
 	*t = getchar();
 	cout << endl;
@@ -101,16 +103,11 @@ void getFilterType(char * t){
 }
 
 void getFilterPasses(int * num, char type){
-	if (type=='4'){
-		*num = 1;
-	}
-	else{
-		cout << "How many times would you like to run the filter?" << endl;
-		cin >> std::ws;
-		string in;
-		getline(cin, in);
-		*num = stoi(in);
-	}
+	cout << "How many times would you like to run the filter?" << endl;
+	cin >> std::ws;
+	string in;
+	getline(cin, in);
+	*num = stoi(in);
 }
 
 void saveImage(int * image_array, const int width, const int height, const int  grayscale, string file_name){
@@ -216,19 +213,27 @@ void runFilter(int const  * in_arr, int  * out_arr, int const width, int const h
 		for (int y = 1; y < height - 1; y++){
 			for (int x = 1; x < width - 1; x++){
 				int p = y * width + x;
-				if (filter_type == '1'){//Blur
+				if (filter_type == '1'){//Box Blur
 					float const blur_stencil[3][3] = { { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 } };
 					applyConvolutionStencil(in_arr, out_arr, p, width, height, blur_stencil);
 				}
-				else if (filter_type == '2'){//Sharpen
+				else if (filter_type == '2'){//Gaussian blur
+					float const sharpen_stencil[3][3] = { { 1.f / 16, 1.f / 8, 1.f / 16 }, { 1.f / 8, 1.f / 4, 1.f / 8 }, { 1.f / 16, 1.f / 8, 1.f / 16 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, sharpen_stencil);
+				}
+				else if (filter_type == '3'){//Sharpen
 					float const sharpen_stencil[3][3] = { { 0, -1, 0 }, { -1, 5, -1 }, { 0, -1, 0 } };
 					applyConvolutionStencil(in_arr, out_arr, p, width, height, sharpen_stencil);
 				}
-				else if (filter_type == '3'){//Edge Enhance
+				else if (filter_type == '4'){//Salt and Pepper
 					float const egde_e_stencil[3][3] = { { 0, 0, 0 }, { -1, 1, 0 }, { 0, 0, 0 } };
 					applyConvolutionStencil(in_arr, out_arr, p, width, height, egde_e_stencil);
 				}
-				else{
+				else if (filter_type == '5'){//Edge Detection
+					float const egde_e_stencil[3][3] = { { -1, -1, -1 }, { -1, 8, -1 }, { -1, -1, -1 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, egde_e_stencil);
+				}
+				else{//Sobel Operator
 					int const sobel_stencil[6][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 },
 					{ -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 					applySobelStencil(in_arr, out_arr, p, width, height, sobel_stencil);

@@ -1,4 +1,4 @@
-﻿Build started 7/14/2015 12:48:55 PM.
+﻿Build started 7/14/2015 3:00:08 PM.
      1>Project "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          D:\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include" /Zi /nologo /W3 /WX- /Od /D WIN32 /D WIN64 /D _DEBUG /D _CONSOLE /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt Main.cpp
@@ -18,4 +18,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.82
+Time Elapsed 00:00:00.79
