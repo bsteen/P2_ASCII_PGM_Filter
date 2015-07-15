@@ -120,16 +120,16 @@ void saveImage(int * image_array, const int width, const int height, const int  
 	image_out.open("Images/"+ file_name + "_output.pgm", fstream::out);
 
 	image_out << "P2" << endl;
-	image_out << "#P2/ASCII PGM (Portable Gray Map) Sobel Filter Output Image" << endl;
+	image_out << "#P2/ASCII PGM (Portable Gray Map) Filter Output" << endl;
 	image_out << to_string(width) + "  " + to_string(height) << endl;
 	image_out << to_string(grayscale) << endl;
 
-	int total = width*height;
+	int total = (width*height)-width;
 	int num_count = 0;
 	for (int i = 0; i < total; i++){
 		image_out << to_string(image_array[i]) + "  ";
 		num_count++;
-		if (num_count >= 12){
+		if (num_count >= 15){
 			image_out << endl;
 			num_count = 0;
 		}
@@ -140,28 +140,26 @@ void saveImage(int * image_array, const int width, const int height, const int  
 	cout << "Image Saved." << endl << endl;
 }
 
-int* add1pxBorder(int const * in_arr, int const width, int const height, int grayscale){
+int* add1pxBorder(int const * in_arr, int const width, int const height){
 
 	int W = width + 2, H = height + 2;
 	int * out = (int*)malloc(sizeof(int)*W * H);
 
-	memset(&out[0], grayscale/2, sizeof(int)*W);
-	memset(&out[W * height], grayscale/2, sizeof(int)*W);
+	memset(&out[0], 0, sizeof(int)*W);
+	memset(&out[W * height], 0, sizeof(int)*W);
 
 	for (int y = 0; y < height; y++){
-		out[(y + 1)*W] = out[(y + 1)*W + width] = grayscale/2;
+		out[(y + 1)*W] = out[(y + 1)*W + width] = 0;
 		memcpy(&out[(y + 1)*W + 1], &in_arr[y*width], sizeof(int)*width);
 	}
 	return out;
 }
 
-//Works somewhat. Still Leaves junk on left and bottom of image.
 int* remove1pxBorder(int const * in_arr, int const width, int const height){
-
 	int * out_arr = (int*)malloc(sizeof(int)*width * height);
 
 	for (int y = 0; y < height; y++){
-		memcpy(&out_arr[y*width], &in_arr[(y + 1)*(width + 2) + 1], sizeof(int)*width);
+		memcpy(&out_arr[y*width], &in_arr[(y + 1)*(width+2)+1], sizeof(int)*width);
 	}
 
 	return out_arr;
@@ -213,7 +211,6 @@ void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const widt
 
 void runFilter(int const  * in_arr, int  * out_arr, int const width, int const height, char filter_type){
 	cout << "Applying Filter..." << endl;
-
 		for (int y = 1; y < height - 1; y++){
 			for (int x = 1; x < width - 1; x++){
 				int p = y * width + x;
@@ -241,7 +238,7 @@ void runFilter(int const  * in_arr, int  * out_arr, int const width, int const h
 					float const egde_e_stencil[3][3] = { { -1, -1, -1 }, { -1, 8, -1 }, { -1, -1, -1 } };
 					applyConvolutionStencil(in_arr, out_arr, p, width, height, egde_e_stencil);
 				}
-				else{//Sobel Operator
+				else if (filter_type == '7'){//Sobel Operator
 					int const sobel_stencil[6][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 },
 					{ -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 					applySobelStencil(in_arr, out_arr, p, width, height, sobel_stencil);
@@ -261,7 +258,7 @@ int main(void){
 
 	loadImage(image_array, &width, &height, &grayscale, &file_name);
 
-	int * expanded = add1pxBorder(image_array, width, height, grayscale);
+	int * expanded = add1pxBorder(image_array, width, height);
 	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width * 2));
 
 	char filter_type;
@@ -270,17 +267,17 @@ int main(void){
 	int filter_passes;
 	getFilterPasses(&filter_passes, filter_type);
 	cout<<endl;
-	
-	if(filter_type<8){//For serial filters
+
+	if(filter_type<'8'){//For serial filters
 		for (int c = 0; c < filter_passes; c++){
 			runFilter(expanded, outimg, width + 2, height + 2, filter_type);
 			int *temp = remove1pxBorder(outimg, width, height);
-			int *temp2 = add1pxBorder(temp, width, height, grayscale);
+			int *temp2 = add1pxBorder(temp, width, height);
 			memcpy(expanded, temp2, sizeof(int)*(width + 2)*(height + 2));
 		}
 	}
 	else{//For CUDA Filters
-		launchKernel(expanded, outimg, width + 2, height + 2, filter_type);
+		launchKernel(expanded, outimg, width, height, filter_type);
 	}
 
 	int * final_image = remove1pxBorder(outimg, width, height);

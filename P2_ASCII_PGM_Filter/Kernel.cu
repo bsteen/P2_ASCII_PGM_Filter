@@ -6,10 +6,14 @@
 #include <iostream>
 using namespace std;
 
+/*for (int y = 1; y < height - 1; y++){
+	for (int x = 1; x < width - 1; x++){
+		int p = y * width + x;*/
+
 __global__ void convolutionKernel(int const * in_arr, int  * out_arr, int const width, int const height, const float stencil[3][3]){
 	int row = blockIdx.y*blockDim.y + threadIdx.y;
 	int col = blockIdx.x*blockDim.x + threadIdx.x;
-	int p = row*col;//position
+	int p = row * width + col;//position
 
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0][0];
 	float um = (float)(in_arr[p - width]) * stencil[0][1];
@@ -72,10 +76,10 @@ void launchKernel(int const  * in_arr, int  * out_arr, int const width, int cons
 	cout << "CUDA enabled device found." << endl;
 	cout << "Applying Filter..." << endl;
 
-	int * cuda_in_arr;
-	int * cuda_out_arr;
-	cudaMalloc(&cuda_in_arr, sizeof(int)*width*height);
-	cudaMalloc(&cuda_out_arr, sizeof(int)*width*height);
+	int * device_in_arr;
+	int * device_out_arr;
+	cudaMalloc(&device_in_arr, sizeof(int)*width*height);
+	cudaMalloc(&device_out_arr, sizeof(int)*width*height);
 
 	int numElements = width * height;
 	int threadsPerBlock = 16;
@@ -83,22 +87,22 @@ void launchKernel(int const  * in_arr, int  * out_arr, int const width, int cons
 	dim3 dimBlock(threadsPerBlock, threadsPerBlock);
 	dim3 dimGrid(blocksPerGrid, blocksPerGrid);
 
-	cudaMemcpy(cuda_in_arr, in_arr, sizeof(int)*width*height,cudaMemcpyHostToDevice);
+	cudaMemcpy(device_in_arr, in_arr, sizeof(int)*width*height,cudaMemcpyHostToDevice);
 
 	if (filter_type == '8'){//CUDA Box Blur
 		float const boxblur_stencil[3][3] = { { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 } };
-		convolutionKernel << <dimGrid, dimBlock >> >(cuda_in_arr, cuda_out_arr, width, height, boxblur_stencil);
+		convolutionKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, boxblur_stencil);
 	}
 	else if (filter_type=='9'){//CUDA Sobel Operator
 		int const sobel_stencil[6][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 },
 		{ -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
-		sobelKernel << <dimGrid, dimBlock >> >(cuda_in_arr, cuda_out_arr, width, height, sobel_stencil);
+		sobelKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, sobel_stencil);
 	}
 	
-	cudaMemcpy(out_arr, cuda_out_arr, sizeof(int)*width*height, cudaMemcpyDeviceToHost);
+	cudaMemcpy(out_arr, device_out_arr, sizeof(int)*width*height, cudaMemcpyDeviceToHost);
 
-	cudaFree(cuda_in_arr);
-	cudaFree(cuda_out_arr);
+	cudaFree(device_in_arr);
+	cudaFree(device_out_arr);
 
 	cout << "Finished Applying Filter." << endl << endl;
 }
