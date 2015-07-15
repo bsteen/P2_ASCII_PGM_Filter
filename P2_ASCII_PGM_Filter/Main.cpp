@@ -98,7 +98,8 @@ void getFilterType(char * t){
 	cout << "5: Emboss (Serial)" << endl;
 	cout << "6: Edge Detection (Serial)" << endl;
 	cout << "7: Sobel Operator (Serial)" << endl;
-	cout << "8: Box Blur (CUDA)" << endl;
+	cout << "8: Box  Blur (CUDA)" << endl;
+	cout << "9: Sobel Operator (CUDA)" << endl;
 	cin >> std::ws; //Eat up the previous white spaces in buffer
 	*t = getchar();
 	cout << endl;
@@ -217,24 +218,24 @@ void runFilter(int const  * in_arr, int  * out_arr, int const width, int const h
 			for (int x = 1; x < width - 1; x++){
 				int p = y * width + x;
 				if (filter_type == '1'){//Box Blur
-					float const blur_stencil[3][3] = { { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 } };
-					applyConvolutionStencil(in_arr, out_arr, p, width, height, blur_stencil);
+					float const boxblur_stencil[3][3] = { { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, boxblur_stencil);
 				}
 				else if (filter_type == '2'){//Gaussian blur
-					float const sharpen_stencil[3][3] = { { 1.f / 16, 1.f / 8, 1.f / 16 }, { 1.f / 8, 1.f / 4, 1.f / 8 }, { 1.f / 16, 1.f / 8, 1.f / 16 } };
-					applyConvolutionStencil(in_arr, out_arr, p, width, height, sharpen_stencil);
+					float const gauss_stencil[3][3] = { { 1.f / 16, 1.f / 8, 1.f / 16 }, { 1.f / 8, 1.f / 4, 1.f / 8 }, { 1.f / 16, 1.f / 8, 1.f / 16 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, gauss_stencil);
 				}
 				else if (filter_type == '3'){//Sharpen
 					float const sharpen_stencil[3][3] = { { 0, -1, 0 }, { -1, 5, -1 }, { 0, -1, 0 } };
 					applyConvolutionStencil(in_arr, out_arr, p, width, height, sharpen_stencil);
 				}
 				else if (filter_type == '4'){//Salt and Pepper
-					float const egde_e_stencil[3][3] = { { 0, 0, 0 }, { -1, 1, 0 }, { 0, 0, 0 } };
-					applyConvolutionStencil(in_arr, out_arr, p, width, height, egde_e_stencil);
+					float const sp_stencil[3][3] = { { 0, 0, 0 }, { -1, 1, 0 }, { 0, 0, 0 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, sp_stencil);
 				}
 				else if (filter_type == '5'){//Emboss
-					float const egde_e_stencil[3][3] = { { -2, -1, 0 }, { -1, 1, 1 }, { 0, 1, 2 } };
-					applyConvolutionStencil(in_arr, out_arr, p, width, height, egde_e_stencil);
+					float const emboss_stencil[3][3] = { { -2, -1, 0 }, { -1, 1, 1 }, { 0, 1, 2 } };
+					applyConvolutionStencil(in_arr, out_arr, p, width, height, emboss_stencil);
 				}
 				else if (filter_type == '6'){//Edge Detection
 					float const egde_e_stencil[3][3] = { { -1, -1, -1 }, { -1, 8, -1 }, { -1, -1, -1 } };
@@ -279,7 +280,7 @@ int main(void){
 		}
 	}
 	else{//For CUDA Filters
-		prepareKernel(expanded, outimg, width + 2, height + 2, filter_type);
+		launchKernel(expanded, outimg, width + 2, height + 2, filter_type);
 	}
 
 	int * final_image = remove1pxBorder(outimg, width, height);
