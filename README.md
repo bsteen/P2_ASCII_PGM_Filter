@@ -6,6 +6,6 @@ An image processing program that uses C++ and CUDA. This program includes two me
 This program takes in a valid P2 (ASCII Encoded) .PGM file and outputs a new .PGM file with the applied filter of choice. The main image filters featured in this program are the Sobel Operator/Filter and a Blur filter.
 .PGM files must have dimensions no greater than 1024x1024 (arbitrary limit).
 
-Currently, no CUDA methods/kernels have been implemented.
+Currently, the C++ (Serial) filters are implemented and work to an extent. The CUDA kernels have also been implemented, but they do not work.
 
 Sample P2 .PGM files used in this project were obtained at: http://people.sc.fsu.edu/~jburkardt/data/pgma/pgma.html
