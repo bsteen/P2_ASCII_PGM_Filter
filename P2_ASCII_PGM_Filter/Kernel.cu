@@ -1,19 +1,15 @@
 //CUDA Headers
-#include <cuda.h>
 #include <cuda_runtime.h>
-#include "device_launch_parameters.h"
+#include <device_launch_parameters.h>
+#include <cuda.h>
 //C++ Headers
 #include <iostream>
 using namespace std;
 
-/*for (int y = 1; y < height - 1; y++){
-	for (int x = 1; x < width - 1; x++){
-		int p = y * width + x;*/
-
 __global__ void convolutionKernel(int const * in_arr, int  * out_arr, int const width, int const height, const float stencil[3][3]){
-	int row = blockIdx.y*blockDim.y + threadIdx.y;
-	int col = blockIdx.x*blockDim.x + threadIdx.x;
-	int p = row * width + col;//position
+	int col = blockIdx.x * blockDim.x + threadIdx.x;
+	int row = blockIdx.y * blockDim.y + threadIdx.y;
+	int p = row*col;
 
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0][0];
 	float um = (float)(in_arr[p - width]) * stencil[0][1];
@@ -29,6 +25,7 @@ __global__ void convolutionKernel(int const * in_arr, int  * out_arr, int const 
 
 	out_arr[p] = (int)(ul + um + ur + ml + mm + mr + ll + lm + lr);
 }
+	
 
 __global__ void sobelKernel(int const * in_arr, int * out_arr, int const width, int const height,int const stencil[6][3]){
 	int row = blockIdx.y*blockDim.y + threadIdx.y;

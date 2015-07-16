@@ -259,7 +259,7 @@ int main(void){
 	loadImage(image_array, &width, &height, &grayscale, &file_name);
 
 	int * expanded = add1pxBorder(image_array, width, height);
-	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width * 2));
+	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width + 2));
 
 	char filter_type;
 	getFilterType(&filter_type);
