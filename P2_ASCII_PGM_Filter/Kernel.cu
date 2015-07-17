@@ -57,36 +57,36 @@ __global__ void sobelKernel(int const * in_arr, int * out_arr, int const width, 
 	out_arr[p] = (int)pow((double)(y_sum*y_sum + x_sum*x_sum), 0.5);
 }
 
-void launchKernel(int const  * in_arr, int  * out_arr, int const width, int const height, char filter_type){
+void printCUDAError(cudaError_t err, int line_num){
+	if (err != cudaSuccess){
+		printf("\nCUDA ERROR: %s at line %i\n\n", cudaGetErrorString(err),line_num);
+		exit(EXIT_FAILURE);
+	}
+}
 
+void launchKernel(int const  * in_arr, int  * out_arr, int const width, int const height, char filter_type){
 	//Check to see if there is a CUDA enabled device
-	int *count=0;
-	cudaError err= cudaGetDeviceCount(count);
-	if (err == cudaErrorNoDevice){
-		cout << cudaGetErrorString(err) <<endl;
-		exit(EXIT_FAILURE);
-	}
-	else if (err == cudaErrorInsufficientDriver){
-		cout << cudaGetErrorString(err) <<endl;
-		exit(EXIT_FAILURE);
-	}
+	int count=0;
+	printCUDAError(cudaGetDeviceCount(&count),__LINE__);
 	cout << "CUDA enabled device found." << endl;
 	cout << "Applying Filter..." << endl;
 
-
-	int numElements = width * height;
+	//Allocate Device Arrays
+	int numElements = width * height;//width, height = orginal value + 2
 	int * device_in_arr;
 	int * device_out_arr;
-	cudaMalloc(&device_in_arr, sizeof(int)*numElements);
-	cudaMalloc(&device_out_arr, sizeof(int)*numElements);
-
+	printCUDAError(cudaMalloc(&device_in_arr, sizeof(int)*numElements), __LINE__);
+	printCUDAError(cudaMalloc(&device_out_arr, sizeof(int)*numElements), __LINE__);
+	
 	int threadsPerBlock = 16;
 	int blocksPerGrid = ceil((double)(numElements) / threadsPerBlock);
 	dim3 dimBlock(threadsPerBlock, threadsPerBlock);
 	dim3 dimGrid(blocksPerGrid, blocksPerGrid);
 
-	cudaMemcpy(device_in_arr, in_arr, sizeof(int)*numElements, cudaMemcpyHostToDevice);
-
+	//Copy both arrays to device memory
+	printCUDAError(cudaMemcpy(device_in_arr, in_arr, sizeof(int)*numElements, cudaMemcpyHostToDevice), __LINE__);
+	printCUDAError(cudaMemcpy(device_in_arr, out_arr, sizeof(int)*numElements, cudaMemcpyHostToDevice), __LINE__);
+	
 	if (filter_type == '8'){//CUDA Box Blur
 		float const boxblur_stencil[3][3] = { { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 } };
 		convolutionKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, boxblur_stencil);
@@ -97,10 +97,11 @@ void launchKernel(int const  * in_arr, int  * out_arr, int const width, int cons
 		sobelKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, sobel_stencil);
 	}
 	
-	cudaMemcpy(out_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToHost);
+	//This is the line that is causing the driver crash.
+	printCUDAError(cudaMemcpy(out_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToHost), __LINE__);
 
 	cudaFree(device_in_arr);
 	cudaFree(device_out_arr);
-
+	
 	cout << "Finished Applying Filter." << endl << endl;
 }
