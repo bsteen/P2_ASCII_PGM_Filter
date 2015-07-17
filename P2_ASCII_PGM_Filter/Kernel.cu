@@ -9,7 +9,7 @@ using namespace std;
 __global__ void convolutionKernel(int const * in_arr, int  * out_arr, int const width, int const height, const float stencil[3][3]){
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
-	int p = row*col;
+	int p = row*width+col;
 
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0][0];
 	float um = (float)(in_arr[p - width]) * stencil[0][1];
@@ -63,28 +63,29 @@ void launchKernel(int const  * in_arr, int  * out_arr, int const width, int cons
 	int *count=0;
 	cudaError err= cudaGetDeviceCount(count);
 	if (err == cudaErrorNoDevice){
-		cout << cudaGetErrorString(err);
+		cout << cudaGetErrorString(err) <<endl;
 		exit(EXIT_FAILURE);
 	}
 	else if (err == cudaErrorInsufficientDriver){
-		cout << cudaGetErrorString(err)<< endl;
+		cout << cudaGetErrorString(err) <<endl;
 		exit(EXIT_FAILURE);
 	}
 	cout << "CUDA enabled device found." << endl;
 	cout << "Applying Filter..." << endl;
 
-	int * device_in_arr;
-	int * device_out_arr;
-	cudaMalloc(&device_in_arr, sizeof(int)*width*height);
-	cudaMalloc(&device_out_arr, sizeof(int)*width*height);
 
 	int numElements = width * height;
+	int * device_in_arr;
+	int * device_out_arr;
+	cudaMalloc(&device_in_arr, sizeof(int)*numElements);
+	cudaMalloc(&device_out_arr, sizeof(int)*numElements);
+
 	int threadsPerBlock = 16;
 	int blocksPerGrid = ceil((double)(numElements) / threadsPerBlock);
 	dim3 dimBlock(threadsPerBlock, threadsPerBlock);
 	dim3 dimGrid(blocksPerGrid, blocksPerGrid);
 
-	cudaMemcpy(device_in_arr, in_arr, sizeof(int)*width*height,cudaMemcpyHostToDevice);
+	cudaMemcpy(device_in_arr, in_arr, sizeof(int)*numElements, cudaMemcpyHostToDevice);
 
 	if (filter_type == '8'){//CUDA Box Blur
 		float const boxblur_stencil[3][3] = { { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 }, { 1.f / 9, 1.f / 9, 1.f / 9 } };
@@ -96,7 +97,7 @@ void launchKernel(int const  * in_arr, int  * out_arr, int const width, int cons
 		sobelKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, sobel_stencil);
 	}
 	
-	cudaMemcpy(out_arr, device_out_arr, sizeof(int)*width*height, cudaMemcpyDeviceToHost);
+	cudaMemcpy(out_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToHost);
 
 	cudaFree(device_in_arr);
 	cudaFree(device_out_arr);

@@ -277,7 +277,7 @@ int main(void){
 		}
 	}
 	else{//For CUDA Filters
-		launchKernel(expanded, outimg, width, height, filter_type);
+		launchKernel(expanded, outimg, width+2, height+2, filter_type);
 	}
 
 	int * final_image = remove1pxBorder(outimg, width, height);
