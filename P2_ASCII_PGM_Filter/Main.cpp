@@ -252,6 +252,7 @@ int main(void){
 	cout << "P2/ASCII PGM (Portable Gray Map) 1024x1024 Filter" << endl << endl;
 
 	//If you want bigger image files to be accpeted, change this allocated memory size accordingly.
+	//Keep in mind that you must have enough space for the additonal 1 pixel border that will go around the image during convolution.
 	int * image_array = (int *)malloc(sizeof(int) * 1048576);//1024*1024 = 1048576
 	int height, width, grayscale;
 	string file_name;
