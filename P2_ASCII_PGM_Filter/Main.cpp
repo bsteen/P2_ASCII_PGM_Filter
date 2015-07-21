@@ -124,7 +124,7 @@ void saveImage(int * image_array, const int width, const int height, const int  
 	image_out << to_string(width) + "  " + to_string(height) << endl;
 	image_out << to_string(grayscale) << endl;
 
-	int total = (width*height)-width;
+	int total = (width*height);
 	int num_count = 0;
 	for (int i = 0; i < total; i++){
 		image_out << to_string(image_array[i]) + "  ";
@@ -277,7 +277,7 @@ int main(void){
 			memcpy(expanded, temp2, sizeof(int)*(width + 2)*(height + 2));
 		}
 	}
-	else{//For CUDA Filters
+	else{//For CUDA Filters (Only runs one pass right now.)
 		launchKernel(expanded, outimg, width+2, height+2, filter_type);
 	}
 
