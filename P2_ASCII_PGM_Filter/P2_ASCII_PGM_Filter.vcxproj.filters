@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CudaCompile Include="Kernel.cu" />
+    <CudaCompile Include="Test_Kernel.cu">
+      <Filter>Test Functions</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="KernelH.cuh" />
+    <ClInclude Include="Test_KernelH.cuh">
+      <Filter>Test Functions</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Test Functions">
+      <UniqueIdentifier>{142fc39e-d8bc-45df-9293-60b4a30c6d1d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

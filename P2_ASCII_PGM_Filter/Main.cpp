@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "KernelH.cuh"
+#include "Test_KernelH.cuh"
 
 //C++ Files
 #include <iostream>
@@ -276,6 +277,9 @@ int main(void){
 			int *temp2 = add1pxBorder(temp, width, height);
 			memcpy(expanded, temp2, sizeof(int)*(width + 2)*(height + 2));
 		}
+	}
+	else if (filter_type=='t'){//For tests
+		prepareTest();
 	}
 	else{//For CUDA Filters (Only runs one pass right now.)
 		launchKernel(expanded, outimg, width+2, height+2, filter_type);

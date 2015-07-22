@@ -9,10 +9,9 @@ using namespace std;
 __global__ void convolutionKernel(int * in_arr, int  * out_arr, int const width, int const height, float * stencil){
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
+	int p = row*width + col;
 
-	if (row>0 && row <height - 1 && col>0 && col<width - 1){//bad, need to find another way
-		int p = row*width + col;
-
+	if (row>0 && row <height - 1 && col>0 && col<width - 1){//Only pass stencil over pixels inside the border
 		float ul = (float)(in_arr[p - width - 1]) * stencil[0];
 		float um = (float)(in_arr[p - width]) * stencil[1];
 		float ur = (float)(in_arr[p - width + 1]) * stencil[2];
@@ -26,6 +25,9 @@ __global__ void convolutionKernel(int * in_arr, int  * out_arr, int const width,
 		float lr = (float)(in_arr[p + width + 1]) * stencil[8];
 
 		out_arr[p] = (int)(ul + um + ur + ml + mm + mr + ll + lm + lr);
+	}
+	else{//Border values should just be set to zero.
+		out_arr[p] = 0;
 	}
 }
 
@@ -65,7 +67,7 @@ __global__ void sobelKernel(int  * in_arr, int * out_arr, int const width, int c
 
 __host__ void printCUDAError(cudaError_t err, int line_num){
 	if (err != cudaSuccess){
-		printf("\nCUDA ERROR: %s at line %i\n\n", cudaGetErrorString(err), line_num);
+		printf("\nCUDA ERROR in %s:\n%s at line %i.\n\n", __FILE__, cudaGetErrorString(err), line_num);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -74,15 +76,18 @@ __host__ void launchKernel(int const  * in_arr, int  * out_arr, int const width,
 	//Check to see if there is a CUDA enabled device
 	int count = 0;
 	printCUDAError(cudaGetDeviceCount(&count), __LINE__);
-	cout << "CUDA enabled device found." << endl;
+	
+	cudaDeviceProp props;
+	cudaGetDeviceProperties(&props, 0);
+	cout << "CUDA enabled device found: "<<props.name << " @" << props.clockRate/1000 << "Mhz" << endl;
 	cout << "Applying Filter..." << endl;
 
 	//Allocate Device Arrays
 	int numElements = width * height;//width, height = orginal value + 2
-	int * device_in_arr;
-	int * device_out_arr;
-	printCUDAError(cudaMalloc(&device_in_arr, sizeof(int)*numElements), __LINE__);
-	printCUDAError(cudaMalloc(&device_out_arr, sizeof(int)*numElements), __LINE__);
+	int * device_in_arr = 0;
+	int * device_out_arr = 0;
+	printCUDAError(cudaMalloc((void**)&device_in_arr, sizeof(int)*numElements), __LINE__);
+	printCUDAError(cudaMalloc((void**)&device_out_arr, sizeof(int)*numElements), __LINE__);
 
 	//Copy both arrays to device memory
 	printCUDAError(cudaMemcpy(device_in_arr, in_arr, sizeof(int)*numElements, cudaMemcpyHostToDevice), __LINE__);
@@ -90,7 +95,6 @@ __host__ void launchKernel(int const  * in_arr, int  * out_arr, int const width,
 
 	double threadsPerBlock = 16.0;
 	int blocksPerGrid = (int)ceil((double)numElements / threadsPerBlock);//Guarantees that there are enough blocks in the grid for every element in the array.
-	cout << blocksPerGrid << endl;
 	dim3 dimBlock((int)threadsPerBlock, (int)threadsPerBlock); //16x16 thread blocks
 	dim3 dimGrid(blocksPerGrid, blocksPerGrid);
 
@@ -98,10 +102,10 @@ __host__ void launchKernel(int const  * in_arr, int  * out_arr, int const width,
 		float boxblur_stencil[9] = { 1.f / 9 , 1.f / 9, 1.f / 9 , 1.f / 9, 1.f / 9, 1.f / 9 , 1.f / 9, 1.f / 9 , 1.f / 9 };
 		float * device_stencil;
 
-		printCUDAError(cudaMalloc(&device_stencil, sizeof(float)*9), __LINE__);
+		printCUDAError(cudaMalloc((void**)&device_stencil, sizeof(float)*9), __LINE__);
 		printCUDAError(cudaMemcpy(device_stencil, boxblur_stencil, sizeof(float)*9, cudaMemcpyHostToDevice), __LINE__);
 
-		//Fug this kernel!
+		//This kernel is broken.
 		convolutionKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
 
 		cudaFree(device_stencil);
@@ -111,11 +115,12 @@ __host__ void launchKernel(int const  * in_arr, int  * out_arr, int const width,
 		{ -1, -2, -1 }, { 0, 0, 0 }, { 1, 2, 1 } };
 		//sobelKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, sobel_stencil);
 	}
-	
+
 	printCUDAError(cudaMemcpy(out_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToHost), __LINE__);
 
 	cudaFree(device_in_arr);
 	cudaFree(device_out_arr);
+	cudaDeviceReset();
 
 	cout << "Finished Applying Filter." << endl << endl;
 }
