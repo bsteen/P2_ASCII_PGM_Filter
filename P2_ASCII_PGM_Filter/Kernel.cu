@@ -68,7 +68,7 @@ __global__ void sobelKernel(int  * in_arr, int * out_arr, int const width, int c
 }*/
 
 //If CUDA function was no succesful, print out the error and exit.
-__host__ void printCUDAError(cudaError_t err, int line_num){
+__host__ void HANDLE_CUDA_ERROR(cudaError_t err, int line_num){
 	if (err != cudaSuccess){
 		printf("\nCUDA ERROR in %s:\n%s at line %i.\n\n", __FILE__, cudaGetErrorString(err), line_num);
 		exit(EXIT_FAILURE);
@@ -78,26 +78,27 @@ __host__ void printCUDAError(cudaError_t err, int line_num){
 __host__ void launchKernel(int const  * in_arr, int  * out_arr, int width, int height, char const filter_type){
 	//Check to see if there is a CUDA enabled device
 	int count = 0;
-	printCUDAError(cudaGetDeviceCount(&count), __LINE__);
+	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&count), __LINE__);
 	
 	cudaDeviceProp props;
 	cudaGetDeviceProperties(&props, 0);
 	cout << "CUDA enabled device found: "<<props.name << " @" << props.clockRate/1000 << "Mhz" << endl;
 	cout << "Applying Filter..." << endl;
 
-	//Allocate Device Arrays
+	//Allocate device arrays
 	int numElements = width * height;//width, height = orginal value + 2
 	int * device_in_arr = 0;
 	int * device_out_arr = 0;
-	printCUDAError(cudaMalloc((void**)&device_in_arr, sizeof(int)*numElements), __LINE__);
-	printCUDAError(cudaMalloc((void**)&device_out_arr, sizeof(int)*numElements), __LINE__);
+	HANDLE_CUDA_ERROR(cudaMalloc((void**)&device_in_arr, sizeof(int)*numElements), __LINE__);
+	HANDLE_CUDA_ERROR(cudaMalloc((void**)&device_out_arr, sizeof(int)*numElements), __LINE__);
+
 	//Copy both arrays to device memory
-	printCUDAError(cudaMemcpy(device_in_arr, in_arr, sizeof(int)*numElements, cudaMemcpyHostToDevice), __LINE__);
-	printCUDAError(cudaMemcpy(device_out_arr, out_arr, sizeof(int)*numElements, cudaMemcpyHostToDevice), __LINE__);
+	HANDLE_CUDA_ERROR(cudaMemcpy(device_in_arr, in_arr, sizeof(int)*numElements, cudaMemcpyHostToDevice), __LINE__);
+	HANDLE_CUDA_ERROR(cudaMemcpy(device_out_arr, out_arr, sizeof(int)*numElements, cudaMemcpyHostToDevice), __LINE__);
 
 	//Allocated device memeory for the the device stencil
-	float * device_stencil;
-	printCUDAError(cudaMalloc((void**)&device_stencil, sizeof(float) * 9), __LINE__);
+	float * device_stencil = 0;
+	HANDLE_CUDA_ERROR(cudaMalloc((void**)&device_stencil, sizeof(float) * 9), __LINE__);
 
 	int threadsPerBlock = 16;
 	int blocksPerGrid = (int)ceil((double)numElements / (double)threadsPerBlock);//Guarantees that there are enough blocks in the grid for every element in the array.
@@ -107,12 +108,12 @@ __host__ void launchKernel(int const  * in_arr, int  * out_arr, int width, int h
 	//Run the selected kernel
 	if (filter_type == '8'){//CUDA Box Blur
 		float boxblur_stencil[9] = { 1.f / 9 , 1.f / 9, 1.f / 9 , 1.f / 9, 1.f / 9, 1.f / 9 , 1.f / 9, 1.f / 9 , 1.f / 9 };
+		HANDLE_CUDA_ERROR(cudaMemcpy(device_stencil, boxblur_stencil, sizeof(float)*9, cudaMemcpyHostToDevice), __LINE__);
 
-		printCUDAError(cudaMemcpy(device_stencil, boxblur_stencil, sizeof(float)*9, cudaMemcpyHostToDevice), __LINE__);
 		convolutionKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
+		HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
 
-		printCUDAError(cudaGetLastError(), __LINE__);
-		printCUDAError(cudaFree(device_stencil), __LINE__);
+		HANDLE_CUDA_ERROR(cudaFree(device_stencil), __LINE__);//Why is this giving an error?
 	}
 	else if (filter_type == '9'){//CUDA Sobel Operator
 		int const sobel_stencil[6][3] = { { -1, 0, 1 }, { -2, 0, 2 }, { -1, 0, 1 },
@@ -120,11 +121,11 @@ __host__ void launchKernel(int const  * in_arr, int  * out_arr, int width, int h
 		//sobelKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, sobel_stencil);
 	}
 	//Copy filtered array out of device and back to host
-	printCUDAError(cudaMemcpy(out_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToHost), __LINE__);
+	HANDLE_CUDA_ERROR(cudaMemcpy(out_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToHost), __LINE__);
 
 	//Free allocated device arrays and reset the device.
-	printCUDAError(cudaFree(device_in_arr), __LINE__);
-	printCUDAError(cudaFree(device_out_arr), __LINE__);
+	HANDLE_CUDA_ERROR(cudaFree(device_in_arr), __LINE__);
+	HANDLE_CUDA_ERROR(cudaFree(device_out_arr), __LINE__);
 	cudaDeviceReset();
 
 	cout << "Finished Applying Filter." << endl << endl;

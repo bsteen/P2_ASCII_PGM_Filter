@@ -279,7 +279,7 @@ int main(void){
 		}
 	}
 	else if (filter_type=='t'){//For tests
-		prepareTest();
+		prepareTest(expanded);
 	}
 	else{//For CUDA Filters (Only runs one pass right now.)
 		launchKernel(expanded, outimg, width+2, height+2, filter_type);
