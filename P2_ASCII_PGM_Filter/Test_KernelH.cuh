@@ -1,1 +1,0 @@
-void launchTestKernel(int  * in_arr, int  * out_arr, int width, int height, char filter_type);
