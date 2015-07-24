@@ -1,10 +1,16 @@
-﻿Build started 7/24/2015 1:08:03 PM.
-     1>Project "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter.vcxproj" on node 2 (Build target(s)).
-     1>AddCudaCompileDeps:
+﻿Build started 7/24/2015 3:36:15 PM.
+     1>Project "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter.vcxproj" on node 2 (Rebuild target(s)).
+     1>CudaClean:
+         cmd.exe /C "C:\Users\Ben\AppData\Local\Temp\tmpaabaf70a44fa4f95b60937c2c2af0931.cmd"
+         "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\nvcc.exe" -ccbin "D:\Microsoft Visual Studio 12.0\VC\bin\x86_amd64"  -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile   -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Zi /RTC1 /MDd  " -o x64\Debug\Kernel.cu.obj "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\Kernel.cu" -clean
+         
+         D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\nvcc.exe" -ccbin "D:\Microsoft Visual Studio 12.0\VC\bin\x86_amd64"  -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile   -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Zi /RTC1 /MDd  " -o x64\Debug\Kernel.cu.obj "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\Kernel.cu" -clean 
+         Kernel.cu
+       AddCudaCompileDeps:
          D:\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\cl.exe /E /nologo /showIncludes /TP /D__CUDACC__ /DWIN32 /DWIN64 /D_DEBUG /D_CONSOLE /D_MBCS /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include" /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin" /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include" /I. /FIcuda_runtime.h /c "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\Kernel.cu" 
        CudaBuild:
          Compiling CUDA source file Kernel.cu...
-         cmd.exe /C "C:\Users\Ben\AppData\Local\Temp\tmp11cb79357dcb4c6698ba56d8fa1069c8.cmd"
+         cmd.exe /C "C:\Users\Ben\AppData\Local\Temp\tmpce3f2af3d68642e69edeb7b7e6990287.cmd"
          "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\nvcc.exe" -gencode=arch=compute_20,code=\"sm_20,compute_20\" --use-local-env --cl-version 2013 -ccbin "D:\Microsoft Visual Studio 12.0\VC\bin\x86_amd64"  -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static  -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Zi /RTC1 /MDd  " -o x64\Debug\Kernel.cu.obj "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\Kernel.cu"
          
          D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\nvcc.exe" -gencode=arch=compute_20,code=\"sm_20,compute_20\" --use-local-env --cl-version 2013 -ccbin "D:\Microsoft Visual Studio 12.0\VC\bin\x86_amd64"  -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static  -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Zi /RTC1 /MDd  " -o x64\Debug\Kernel.cu.obj "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\Kernel.cu" 
@@ -24,8 +30,8 @@
          C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\cudart32_70.dll
          C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.0\bin\cudart64_70.dll
                  2 file(s) copied.
-     1>Done Building Project "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter.vcxproj" (Build target(s)).
+     1>Done Building Project "D:\Microsoft Visual Studio 12.0\Projects\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter\P2_ASCII_PGM_Filter.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:06.53
+Time Elapsed 00:00:09.75
