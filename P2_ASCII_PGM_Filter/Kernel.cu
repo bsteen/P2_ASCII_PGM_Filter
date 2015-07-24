@@ -66,7 +66,9 @@ void HANDLE_CUDA_ERROR(cudaError_t err, int line_num){
 	}
 }
 
-void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char const filter_type){
+
+
+void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char const filter_type, int filter_passes){
 	//Check to see if there is a CUDA enabled device
 	int count = 0;
 	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&count), __LINE__);
@@ -100,8 +102,11 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 		HANDLE_CUDA_ERROR(cudaMalloc((void**)&device_stencil, sizeof(float) * 9), __LINE__);
 		HANDLE_CUDA_ERROR(cudaMemcpy(device_stencil, boxblur_stencil, sizeof(float) * 9, cudaMemcpyHostToDevice), __LINE__);
 
-		convolutionKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
-		HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
+		for (int i = 0; i < filter_passes; i++){
+			convolutionKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
+			HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
+			HANDLE_CUDA_ERROR(cudaMemcpy(device_in_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToDevice), __LINE__);
+		}
 
 		HANDLE_CUDA_ERROR(cudaFree(device_stencil), __LINE__);
 	}
@@ -111,8 +116,11 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 		HANDLE_CUDA_ERROR(cudaMalloc((void**)&device_stencil, sizeof(int) * 18), __LINE__);
 		HANDLE_CUDA_ERROR(cudaMemcpy(device_stencil, sobel_stencil, sizeof(int) * 18, cudaMemcpyHostToDevice), __LINE__);
 
-		sobelKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
-		HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
+		for (int i = 0; i < filter_passes; i++){
+			sobelKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
+			HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
+			HANDLE_CUDA_ERROR(cudaMemcpy(device_in_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToDevice), __LINE__);
+		}
 
 		HANDLE_CUDA_ERROR(cudaFree(device_stencil), __LINE__);
 	}

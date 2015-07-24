@@ -116,9 +116,9 @@ void getFilterPasses(int * num, char type){
 }
 
 void saveImage(int * image_array, const int width, const int height, const int  grayscale, string file_name){
-	cout << "Saving Image as "+ file_name +"_output.pgm..." << endl;
+	cout << "Saving image as "+ file_name +"_output.pgm..." << endl;
 	fstream image_out;
-	image_out.open("Images/"+ file_name + "_output.pgm", fstream::out);
+	image_out.open("Output/"+ file_name + "_output.pgm", fstream::out);
 
 	image_out << "P2" << endl;
 	image_out << "#P2/ASCII PGM (Portable Gray Map) Filter Output" << endl;
@@ -180,10 +180,8 @@ void applyConvolutionStencil(int const * in_arr, int  * out_arr, int p, int cons
 	float lm = (float)(in_arr[p + width]) * stencil[2][1];
 	float lr = (float)(in_arr[p + width + 1]) * stencil[2][2];
 
-	if (ul + um + ur + ml + mm + mr + ll + lm + lr > 100)
-		out_arr[p] = (int)(ul + um + ur + ml + mm + mr + ll + lm + lr);
-	else
-		out_arr[p] = 0;
+	out_arr[p] = (int)(ul + um + ur + ml + mm + mr + ll + lm + lr);
+
 }
 
 void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height, const int stencil[6][3]){
@@ -210,11 +208,11 @@ void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const widt
 	lr = (in_arr[p + width + 1]) * stencil[5][2];
 	int y_sum = ul + um + ur + ml + mm + mr + ll + lm + lr;
 
-	out_arr[p] = (int)pow((y_sum*y_sum+x_sum*x_sum),0.5);
+
+	out_arr[p] = (int)pow((y_sum*y_sum + x_sum*x_sum), 0.5);
 }
 
 void runFilter(int const  * in_arr, int  * out_arr, int const width, int const height, char filter_type){
-	cout << "Applying Filter..." << endl;
 		for (int y = 1; y < height - 1; y++){
 			for (int x = 1; x < width - 1; x++){
 				int p = y * width + x;
@@ -249,7 +247,6 @@ void runFilter(int const  * in_arr, int  * out_arr, int const width, int const h
 				}
 			}
 		}
-	cout << "Finished Applying Filter." << endl <<endl;
 }
 
 int main(void){
@@ -272,20 +269,20 @@ int main(void){
 	int filter_passes;
 	getFilterPasses(&filter_passes, filter_type);
 
+	cout << "Applying Filter..." << endl;
 	if(filter_type<'8'){//For serial filters
 		for (int c = 0; c < filter_passes; c++){
 			runFilter(expanded, outimg, width + 2, height + 2, filter_type);
-			int *temp = remove1pxBorder(outimg, width, height);
-			int *temp2 = add1pxBorder(temp, width, height);
-			memcpy(expanded, temp2, sizeof(int)*(width + 2)*(height + 2));
+			memcpy(expanded, outimg, sizeof(int)*(width + 2)*(height + 2));
 		}
 	}
 	else{//For CUDA Filters (Only runs one pass right now.)
-		launchKernel(expanded, outimg, width + 2, height + 2, filter_type);
+		launchKernel(expanded, outimg, width + 2, height + 2, filter_type, filter_passes);
 	}
+	cout << "Finished Applying Filter." << endl << endl;
 
+	//Remove the border and save the image
 	int * final_image = remove1pxBorder(outimg, width, height);
-
 	saveImage(final_image, width, height, grayscale, file_name);
 
 	free(image_array);
