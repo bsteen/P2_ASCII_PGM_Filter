@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "KernelH.cuh"
-#include "Test_KernelH.cuh"
 
 //C++ Files
 #include <iostream>
@@ -113,6 +112,7 @@ void getFilterPasses(int * num, char type){
 	string in;
 	getline(cin, in);
 	*num = stoi(in);
+	cout << endl;
 }
 
 void saveImage(int * image_array, const int width, const int height, const int  grayscale, string file_name){
@@ -180,7 +180,10 @@ void applyConvolutionStencil(int const * in_arr, int  * out_arr, int p, int cons
 	float lm = (float)(in_arr[p + width]) * stencil[2][1];
 	float lr = (float)(in_arr[p + width + 1]) * stencil[2][2];
 
-	out_arr[p] = (int)(ul + um + ur + ml + mm + mr + ll + lm + lr);
+	if (ul + um + ur + ml + mm + mr + ll + lm + lr > 100)
+		out_arr[p] = (int)(ul + um + ur + ml + mm + mr + ll + lm + lr);
+	else
+		out_arr[p] = 0;
 }
 
 void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height, const int stencil[6][3]){
@@ -263,12 +266,11 @@ int main(void){
 	int * expanded = add1pxBorder(image_array, width, height);
 	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width + 2));
 
+	//Get the filter type and number of passes.
 	char filter_type;
 	getFilterType(&filter_type);
-
 	int filter_passes;
 	getFilterPasses(&filter_passes, filter_type);
-	cout<<endl;
 
 	if(filter_type<'8'){//For serial filters
 		for (int c = 0; c < filter_passes; c++){
@@ -278,11 +280,8 @@ int main(void){
 			memcpy(expanded, temp2, sizeof(int)*(width + 2)*(height + 2));
 		}
 	}
-	else if (filter_type=='t'){//For tests
-		prepareTest(expanded);
-	}
 	else{//For CUDA Filters (Only runs one pass right now.)
-		launchKernel(expanded, outimg, width+2, height+2, filter_type);
+		launchKernel(expanded, outimg, width + 2, height + 2, filter_type);
 	}
 
 	int * final_image = remove1pxBorder(outimg, width, height);

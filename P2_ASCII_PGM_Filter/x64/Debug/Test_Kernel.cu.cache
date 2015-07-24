@@ -45,5 +45,5 @@ UseHostDefines=true
 UseHostInclude=true
 UseHostLibraryDependencies=
 UseHostLibraryDirectories=
-Warning=W3
-Warning=W3
+Warning=Wall
+Warning=Wall

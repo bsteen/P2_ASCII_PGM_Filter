@@ -23,11 +23,9 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Kernel.cu" />
-    <CudaCompile Include="Test_Kernel.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KernelH.cuh" />
-    <ClInclude Include="Test_KernelH.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{397A2DA8-31EF-455F-9672-5552FCBDEDE6}</ProjectGuid>
@@ -116,6 +114,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <Warning>InheritFromHost</Warning>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
