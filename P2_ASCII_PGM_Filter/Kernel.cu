@@ -76,7 +76,12 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 	cudaDeviceProp props;
 	cudaGetDeviceProperties(&props, 0);
 	cout << "CUDA enabled device found: "<<props.name << " @" << props.clockRate/1000 << "Mhz" << endl;
-	cout << "Your device compute capability is: " << props.major << "." << props.minor << endl;
+	int major = props.major;
+	cout << "Your device compute capability is: " << major << "." << props.minor << endl;
+	if (major < 2){//A compute capability of 2.0 is needed to allow blocks with 1024 threads in them.
+		cout << "Your CUDA enabled device needs to have a compute capability of at least 2.0 to run the CUDA kernels." << endl;
+		exit(EXIT_FAILURE);
+	}
 	cout << "Applying Filter..." << endl;
 
 	//Allocate device arrays
@@ -131,6 +136,4 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 	HANDLE_CUDA_ERROR(cudaFree(device_in_arr), __LINE__);
 	HANDLE_CUDA_ERROR(cudaFree(device_out_arr), __LINE__);
 	cudaDeviceReset();
-
-	cout << "Finished Applying Filter." << endl << endl;
 }

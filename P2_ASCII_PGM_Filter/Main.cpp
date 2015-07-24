@@ -4,6 +4,7 @@
 #include "KernelH.cuh"
 
 //C++ Files
+#include <conio.h>
 #include <iostream>
 #include <fstream>//file stream
 #include <sstream>//string stream
@@ -19,7 +20,7 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 	string dimensions[2];
 	int i = 0;
 
-	cout << "Load which image from Images subfolder? (File name only)" << endl;
+	cout << "Load which image from Images sub-folder? (File name only)" << endl;
 	getline(cin, *file);
 
 	cout << endl << "Loading image \""+ *file +".pgm\" from Images..." << endl;
@@ -103,7 +104,6 @@ void getFilterType(char * t){
 	cin >> std::ws; //Eat up the previous white spaces in buffer
 	*t = getchar();
 	cout << endl;
-
 }
 
 void getFilterPasses(int * num, char type){
@@ -116,7 +116,7 @@ void getFilterPasses(int * num, char type){
 }
 
 void saveImage(int * image_array, const int width, const int height, const int  grayscale, string file_name){
-	cout << "Saving image as "+ file_name +"_output.pgm..." << endl;
+	cout << "Saving image as "+ file_name +"_output.pgm to the Output sub-folder..." << endl;
 	fstream image_out;
 	image_out.open("Output/"+ file_name + "_output.pgm", fstream::out);
 
@@ -130,7 +130,7 @@ void saveImage(int * image_array, const int width, const int height, const int  
 	for (int i = 0; i < total; i++){
 		image_out << to_string(image_array[i]) + "  ";
 		num_count++;
-		if (num_count >= 15){
+		if (num_count >= 16){//This is just to make the lines look neat/more compact.
 			image_out << endl;
 			num_count = 0;
 		}
@@ -208,7 +208,6 @@ void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const widt
 	lr = (in_arr[p + width + 1]) * stencil[5][2];
 	int y_sum = ul + um + ur + ml + mm + mr + ll + lm + lr;
 
-
 	out_arr[p] = (int)pow((y_sum*y_sum + x_sum*x_sum), 0.5);
 }
 
@@ -269,8 +268,8 @@ int main(void){
 	int filter_passes;
 	getFilterPasses(&filter_passes, filter_type);
 
-	cout << "Applying Filter..." << endl;
 	if(filter_type<'8'){//For serial filters
+		cout << "Applying Filter..." << endl;
 		for (int c = 0; c < filter_passes; c++){
 			runFilter(expanded, outimg, width + 2, height + 2, filter_type);
 			memcpy(expanded, outimg, sizeof(int)*(width + 2)*(height + 2));
@@ -289,6 +288,7 @@ int main(void){
 	free(expanded);
 	free(outimg);
 
-	cout << "Done." << endl;
+	cout << "Press any key to exit.";
+	_getch();
 	return 0;
 }
