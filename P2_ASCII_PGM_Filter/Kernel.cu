@@ -4,6 +4,8 @@
 #include <cuda.h>
 //C++ Headers
 #include <iostream>
+#include <ctime>
+#include "MainH.h"
 using namespace std;
 
 __global__ void convolutionKernel(int * in_arr, int  * out_arr, int width, int height, float * stencil){
@@ -66,9 +68,7 @@ void HANDLE_CUDA_ERROR(cudaError_t err, int line_num){
 	}
 }
 
-
-
-void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char const filter_type, int filter_passes){
+void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char const filter_type, int filter_passes, double * time){
 	//Check to see if there is a CUDA enabled device
 	int count = 0;
 	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&count), __LINE__);
@@ -79,8 +79,7 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 	int major = props.major;
 	cout << "Your device compute capability is: " << major << "." << props.minor << endl;
 	if (major < 2){//A compute capability of 2.0 is needed to allow blocks with 1024 threads in them.
-		cout << "Your CUDA enabled device needs to have a compute capability of at least 2.0 to run the CUDA kernels." << endl;
-		exit(EXIT_FAILURE);
+		errorExit("Your CUDA enabled device needs to have a compute capability of at least 2.0 to run the CUDA kernels.");
 	}
 	cout << "Applying Filter..." << endl;
 
@@ -107,12 +106,13 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 		HANDLE_CUDA_ERROR(cudaMalloc((void**)&device_stencil, sizeof(float) * 9), __LINE__);
 		HANDLE_CUDA_ERROR(cudaMemcpy(device_stencil, boxblur_stencil, sizeof(float) * 9, cudaMemcpyHostToDevice), __LINE__);
 
+		std::clock_t start = std::clock();
 		for (int i = 0; i < filter_passes; i++){
 			convolutionKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
 			HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
 			HANDLE_CUDA_ERROR(cudaMemcpy(device_in_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToDevice), __LINE__);
 		}
-
+		*time = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 		HANDLE_CUDA_ERROR(cudaFree(device_stencil), __LINE__);
 	}
 	else if (filter_type == '9'){//CUDA Sobel Operator
@@ -121,12 +121,13 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 		HANDLE_CUDA_ERROR(cudaMalloc((void**)&device_stencil, sizeof(int) * 18), __LINE__);
 		HANDLE_CUDA_ERROR(cudaMemcpy(device_stencil, sobel_stencil, sizeof(int) * 18, cudaMemcpyHostToDevice), __LINE__);
 
+		std::clock_t start = std::clock();
 		for (int i = 0; i < filter_passes; i++){
 			sobelKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
 			HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
 			HANDLE_CUDA_ERROR(cudaMemcpy(device_in_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToDevice), __LINE__);
 		}
-
+		*time = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 		HANDLE_CUDA_ERROR(cudaFree(device_stencil), __LINE__);
 	}
 	//Copy filtered array out of device and back to host

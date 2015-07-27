@@ -4,11 +4,18 @@
 #include "KernelH.cuh"
 
 //C++ Files
+#include <ctime>
 #include <conio.h>
 #include <iostream>
 #include <fstream>//file stream
 #include <sstream>//string stream
 using namespace std;
+
+void errorExit(string error){
+	cout << error <<endl<< "Press any key to exit.";
+	_getch();
+	exit(EXIT_FAILURE);
+}
 
 void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 {
@@ -36,8 +43,7 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 			cout << "Valid P2/ASCII .pgm file found." << endl;
 		}
 		else{
-			cout << "Not valid File.  Must be .pgm P2/ASCII." << endl;
-			exit(EXIT_FAILURE);
+			errorExit("Not a valid File.  Must be .pgm P2/ASCII.");
 		}
 
 		//Skip over any comments
@@ -57,8 +63,7 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 		width = atoi(dimensions[0].c_str());//Now convert to integers
 		height = atoi(dimensions[1].c_str());
 		if (width>1024 || height>1024){//Change this check to accommodate larger images. Make sure enough memory is allocated.
-			cout << "Incorrect image dimensions. Max size 1024x1024.";
-			exit(EXIT_FAILURE);
+			errorExit("Incorrect image dimensions. Max size 1024x1024.");
 		}
 		else{
 			*w = width;
@@ -83,8 +88,7 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 		image_in.close();//close ifstream
 	}
 	else{
-		cout << "ERROR: File not found." << endl;
-		exit(EXIT_FAILURE);
+		errorExit("File not found.");
 	}
 
 	cout << "Finished loading image." << endl << endl;
@@ -268,22 +272,33 @@ int main(void){
 	int filter_passes;
 	getFilterPasses(&filter_passes, filter_type);
 
+	double * time = (double*)malloc(sizeof(double));
 	if(filter_type<'8'){//For serial filters
 		cout << "Applying Filter..." << endl;
+
+		std::clock_t start = std::clock();//For time calculation. Start timer
 		for (int c = 0; c < filter_passes; c++){
 			runFilter(expanded, outimg, width + 2, height + 2, filter_type);
 			memcpy(expanded, outimg, sizeof(int)*(width + 2)*(height + 2));
 		}
+		*time = (std::clock() - start) / (double)CLOCKS_PER_SEC;//Stop timer
 	}
-	else{//For CUDA Filters (Only runs one pass right now.)
-		launchKernel(expanded, outimg, width + 2, height + 2, filter_type, filter_passes);
+	else{//For CUDA Filters
+		launchKernel(expanded, outimg, width + 2, height + 2, filter_type, filter_passes, time);
 	}
-	cout << "Finished Applying Filter." << endl << endl;
+
+	//Print out time it took to complete filter.
+	cout << "Finished Applying Filter." << endl << "It took " << *time << "s to complete. ";
+	if (*time == 0){
+		cout << "(Less .001 seconds)";
+	}
+	cout << endl << endl;
 
 	//Remove the border and save the image
 	int * final_image = remove1pxBorder(outimg, width, height);
 	saveImage(final_image, width, height, grayscale, file_name);
-
+	
+	free(time);
 	free(image_array);
 	free(expanded);
 	free(outimg);

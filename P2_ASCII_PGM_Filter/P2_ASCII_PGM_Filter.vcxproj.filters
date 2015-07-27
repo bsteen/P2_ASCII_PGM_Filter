@@ -8,6 +8,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KernelH.cuh" />
+    <ClInclude Include="MainH.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Test Files">

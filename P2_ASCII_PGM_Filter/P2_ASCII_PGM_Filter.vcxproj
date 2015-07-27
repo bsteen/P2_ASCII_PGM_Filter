@@ -26,6 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KernelH.cuh" />
+    <ClInclude Include="MainH.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{397A2DA8-31EF-455F-9672-5552FCBDEDE6}</ProjectGuid>
