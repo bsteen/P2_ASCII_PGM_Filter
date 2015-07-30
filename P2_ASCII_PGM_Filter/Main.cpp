@@ -27,7 +27,7 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 	string dimensions[2];
 	int i = 0;
 
-	cout << "Load which image from Images sub-folder? (File name only)" << endl;
+	cout << "Load which image from Images sub-folder? (Enter file name only)" << endl;
 	getline(cin, *file);
 
 	cout << endl << "Loading image \""+ *file +".pgm\" from Images..." << endl;
@@ -68,14 +68,14 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 		else{
 			*w = width;
 			*h = height;
-			printf("The image dimensions are: %ix%i.\n", width, height);
+			cout << "The image dimensions are : " <<width <<"x"<<height << endl;
 		}
 
 		//Get grayscale value
 		getline(image_in, line);
 		grayscale = atoi(line.c_str());
 		*g = grayscale;
-		printf("The grayscale range for this image is 0 to %i.\n", grayscale);
+		cout << "The grayscale range for this image is 0 to " <<grayscale<<"."<< endl;
 
 		//Store numbers into the 2D int array
 		int i = 0;

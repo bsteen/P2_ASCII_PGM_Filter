@@ -1,7 +1,6 @@
 //CUDA Headers
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-#include <cuda.h>
 //C++ Headers
 #include <iostream>
 #include <ctime>
@@ -13,7 +12,7 @@ __global__ void convolutionKernel(int * in_arr, int  * out_arr, int width, int h
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
 	int grid_width = gridDim.x * blockDim.x;
 	int p = row * grid_width + col;
-
+	
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0];
 	float um = (float)(in_arr[p - width]) * stencil[1];
 	float ur = (float)(in_arr[p - width + 1]) * stencil[2];
