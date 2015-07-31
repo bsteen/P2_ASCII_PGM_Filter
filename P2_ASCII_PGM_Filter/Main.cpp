@@ -53,8 +53,7 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 		}
 
 		//Get width and height dimensions of image
-		//Right now, line contains: "width  height" (two spaces in between them)
-		//Use string stream to break it up into a string array then convert to ints
+		//Use string stream to break line up into a string array then convert to ints
 		stringstream ssin(line);
 		while (ssin && i < 2){
 			ssin >> dimensions[i];
@@ -63,7 +62,7 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 		width = atoi(dimensions[0].c_str());//Now convert to integers
 		height = atoi(dimensions[1].c_str());
 		if (width>1024 || height>1024){//Change this check to accommodate larger images. Make sure enough memory is allocated.
-			errorExit("Incorrect image dimensions. Max size 1024x1024.");
+			errorExit("Incorrect image dimensions. Max size is 1024x1024.");
 		}
 		else{
 			*w = width;
@@ -126,15 +125,21 @@ void saveImage(int * image_array, const int width, const int height, const int  
 
 	image_out << "P2" << endl;
 	image_out << "#P2/ASCII PGM (Portable Gray Map) Filter Output" << endl;
-	image_out << to_string(width) + "  " + to_string(height) << endl;
+	image_out << to_string(width) + " " + to_string(height) << endl;
 	image_out << to_string(grayscale) << endl;
 
 	int total = (width*height);
 	int num_count = 0;
 	for (int i = 0; i < total; i++){
-		image_out << to_string(image_array[i]) + "  ";
+		if (image_array[i] < 0){
+			image_out << to_string(0) + " ";//This is a cheaty way of removing the corrput borders. It is not a subsitute for correct edge detection in the filter.
+		}
+		else{
+			image_out << to_string(image_array[i]) + " ";
+		}
 		num_count++;
-		if (num_count >= 16){//This is just to make the lines look neat/more compact.
+
+		if (num_count >= 16){//This is just to make the ASCII lines in the image file look neat/compact.
 			image_out << endl;
 			num_count = 0;
 		}
@@ -290,7 +295,7 @@ int main(void){
 	//Print out time it took to complete filter.
 	cout << "Finished Applying Filter." << endl << "It took " << *time << "s to complete. ";
 	if (*time == 0){
-		cout << "(Less .001 seconds)";
+		cout << "(Less .001 seconds)";//The timer  am using only goes to 1/1000 of a second, so a value 0 means the calculation time is less than 0.001s.
 	}
 	cout << endl << endl;
 

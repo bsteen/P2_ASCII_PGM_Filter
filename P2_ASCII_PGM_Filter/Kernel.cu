@@ -80,6 +80,7 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 	if (major < 2){//A compute capability of 2.0 is needed to allow blocks with 1024 threads in them.
 		errorExit("Your CUDA enabled device needs to have a compute capability of at least 2.0 to run the CUDA kernels.");
 	}
+
 	cout << "Applying Filter..." << endl;
 
 	//Allocate device arrays
@@ -107,7 +108,7 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 
 		std::clock_t start = std::clock();
 		for (int i = 0; i < filter_passes; i++){
-			convolutionKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
+			convolutionKernel <<<dimGrid, dimBlock>>>(device_in_arr, device_out_arr, width, height, device_stencil);
 			HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
 			HANDLE_CUDA_ERROR(cudaMemcpy(device_in_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToDevice), __LINE__);
 		}
@@ -122,7 +123,7 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 
 		std::clock_t start = std::clock();
 		for (int i = 0; i < filter_passes; i++){
-			sobelKernel << <dimGrid, dimBlock >> >(device_in_arr, device_out_arr, width, height, device_stencil);
+			sobelKernel <<<dimGrid, dimBlock>>>(device_in_arr, device_out_arr, width, height, device_stencil);
 			HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
 			HANDLE_CUDA_ERROR(cudaMemcpy(device_in_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToDevice), __LINE__);
 		}
