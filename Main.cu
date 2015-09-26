@@ -3,17 +3,13 @@
 
 #include <cmath>
 #include <ctime>
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string>
 using namespace std;
 
 void errorExit(string error){
-	cout << error << endl << "Press any key to exit.";
+	cout << error << endl << "Press ENTER to exit.";
 	getchar();
 	exit(EXIT_FAILURE);
 }
@@ -28,7 +24,7 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 	string dimensions[2];
 	int i = 0;
 
-	cout << "Load which image from Images sub-folder? (Enter file name only)" << endl;
+	cout << "Load which image from Images sub-folder? (Enter file name only) ";
 	getline(cin, *file);
 
 	cout << endl << "Loading image \""+ *file +".pgm\" from Images..." << endl;
@@ -310,7 +306,7 @@ int main(void){
 	free(expanded);
 	free(outimg);
 
-	cout << "Press any key to exit.";
+	cout << "Press ENTER to exit.";
 	getchar();
 	return 0;
 }
