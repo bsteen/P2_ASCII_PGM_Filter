@@ -10,6 +10,7 @@ This program takes in a valid P2 (ASCII Encoded) .PGM file and outputs a new .PG
 
 There are still some weird bugs, but it works mostly as I intended to.
 To complile this project, run in a Linux terminal: nvcc Main.cu Kernel.cu -std=c++11
+
 You can also import these files into Microsoft Visual Studio (or any other IDE that supports CUDA) and compile it from there. Obviously, you must have the CUDA development kit and nvcc compiler installed as well (https://developer.nvidia.com/cuda-toolkit).
 
 Image files to be read in are placed in the "Images" sub-folder, and filtered images appear in the "Output" sub-folder with "_output.pgm" appended to their file name.
