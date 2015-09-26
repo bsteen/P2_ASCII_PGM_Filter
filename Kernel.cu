@@ -1,10 +1,8 @@
-//CUDA Headers
-#include <cuda_runtime.h>
-#include <device_launch_parameters.h>
-//C++ Headers
+#include "Main.cuh"
+#include "Kernel.cuh"
+
 #include <iostream>
 #include <ctime>
-#include "MainH.h"
 using namespace std;
 
 __global__ void convolutionKernel(int * in_arr, int  * out_arr, int width, int height, float * stencil){

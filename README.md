@@ -1,14 +1,15 @@
 # P2/ASCII PGM (Portable Gray Map) Image Filter
 **This repository is for a research project.**
 
-An image processing program that uses C++ and CUDA. This program includes two methods of processing image data and applying filters:
--	Through C++ functions (Serial Processing)
--	Through Nvidia’s CUDA kernels (Parallel Processing)
+An image processing program that uses CUDA. This program includes two methods of processing image data and applying filters:
+-	Through normal C++ functions (CPU/Serial Processing)
+-	Through Nvidia’s CUDA kernels (GPU/Parallel Processing)
 
 This program takes in a valid P2 (ASCII Encoded) .PGM file and outputs a new .PGM file with the applied filter of choice. The main image filters featured in this program are the Sobel Operator/Filter and a Blur filter.
 .PGM files must have dimensions no greater than 1024x1024 (arbitrary limit).
 
 There are still some weird bugs, but it works mostly as I intended to be.
+This must be compiled as: nvcc Main.cpp Kernel.cu -std=c++11
 
 Image files to be read in are placed in the "Images" sub-folder, and filtered images appear in the "Output" sub-folder with "_output.pgm" appended to their file name.
 You can convert other image formats to .PGM with free image software such as IrfanView (http://www.irfanview.com/) or GIMP (http://www.gimp.org/). Make sure you select the ASCII encoding option if you want the files to be accepted by this program.
