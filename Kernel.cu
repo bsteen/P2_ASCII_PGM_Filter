@@ -65,7 +65,7 @@ void HANDLE_CUDA_ERROR(cudaError_t err, int line_num){
 	}
 }
 
-void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char const filter_type, int filter_passes, double * time){
+void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char const filter_type, int filter_passes, double &time){
 	//Check to see if there is a CUDA enabled device
 	int count = 0;
 	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&count), __LINE__);
@@ -110,7 +110,7 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 			HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
 			HANDLE_CUDA_ERROR(cudaMemcpy(device_in_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToDevice), __LINE__);
 		}
-		*time = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+		time = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 		HANDLE_CUDA_ERROR(cudaFree(device_stencil), __LINE__);
 	}
 	else if (filter_type == '9'){//CUDA Sobel Operator
@@ -125,7 +125,7 @@ void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char con
 			HANDLE_CUDA_ERROR(cudaGetLastError(), __LINE__);
 			HANDLE_CUDA_ERROR(cudaMemcpy(device_in_arr, device_out_arr, sizeof(int)*numElements, cudaMemcpyDeviceToDevice), __LINE__);
 		}
-		*time = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+		time = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 		HANDLE_CUDA_ERROR(cudaFree(device_stencil), __LINE__);
 	}
 	//Copy filtered array out of device and back to host

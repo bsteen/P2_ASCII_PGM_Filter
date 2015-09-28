@@ -14,23 +14,20 @@ void errorExit(string error){
 	exit(EXIT_FAILURE);
 }
 
-void loadImage(int * image_array, int * w, int * h, int * g, string * file)
+void loadImage(int * image_array, int &width, int &height, int &grayscale, string &file)
 {
 	string image_path;
 	string line;
-	int width;
-	int height;
-	int grayscale;
 	string dimensions[2];
 	int i = 0;
 
 	cout << "Load which image from Images sub-folder? (Enter file name only) ";
-	getline(cin, *file);
+	getline(cin, file);
 
-	cout << endl << "Loading image \""+ *file +".pgm\" from Images..." << endl;
-	image_path ="Images/" +*file + ".pgm";
+	cout << endl << "Loading image \""+ file +".pgm\" from Images..." << endl;
+	image_path ="Images/" +file + ".pgm";
 
-	//Load .pgm (P2/ASCII Format) Image into a 2D short array.
+	//Load .pgm (P2/ASCII Format) image into a 2D short array.
 	ifstream image_in(image_path);
 	if (image_in)
 	{
@@ -54,32 +51,29 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 		stringstream ssin(line);
 		while (ssin && i < 2){
 			ssin >> dimensions[i];
-			++i;
+			i++;
 		}
-		width = atoi(dimensions[0].c_str());//Now convert to integers
-		height = atoi(dimensions[1].c_str());
-		if (width>1024 || height>1024){//Change this check to accommodate larger images. Make sure enough memory is allocated.
+
+		width = stoi(dimensions[0]);//Now convert strings to integers
+		height = stoi(dimensions[1]);
+
+		if (width > 1024 || height > 1024){//Change this check to accommodate larger images. Make sure enough memory is allocated.
 			errorExit("Incorrect image dimensions. Max size is 1024x1024.");
 		}
 		else{
-			*w = width;
-			*h = height;
-			cout << "The image dimensions are : " <<width <<"x"<<height << endl;
+			cout << "The image dimensions are : " << width << "x" << height << endl;
 		}
 
 		//Get grayscale value
 		getline(image_in, line);
-		grayscale = atoi(line.c_str());
-		*g = grayscale;
+		grayscale=stoi(line);//String to int conversion
 		cout << "The grayscale range for this image is 0 to " <<grayscale<<"."<< endl;
 
 		//Store numbers into the 2D int array
-		int i = 0;
-		while (i<width*height){
+		for (int i = 0; i < width * height; i++){
 			image_in >> ws;//Extracts as many whitespace characters as possible from the current position in the input sequence.
 			getline(image_in, line, ' ');
-			image_array[i] = atoi(line.c_str());
-			i++;
+			image_array[i] = stoi(line);
 		}
 		image_in.close();//close ifstream
 	}
@@ -90,7 +84,7 @@ void loadImage(int * image_array, int * w, int * h, int * g, string * file)
 	cout << "Finished loading image." << endl << endl;
 }
 
-void getFilterType(char * t){
+void getFilterType(char &type){
 	cout << "Which filter would you like to run?" << endl;
 	cout << "1: Box Blur (Serial)" << endl;
 	cout << "2: Gaussian Approx. (Serial)" << endl;
@@ -101,17 +95,19 @@ void getFilterType(char * t){
 	cout << "7: Sobel Operator (Serial)" << endl;
 	cout << "8: Box  Blur (CUDA)" << endl;
 	cout << "9: Sobel Operator (CUDA)" << endl;
-	cin >> ws; //Eat up the previous white spaces in buffer
-	*t = getchar();
+	cin >> ws; //Eat up the previous white spaces in buffer 
+	type = getchar();
 	cout << endl;
 }
 
-void getFilterPasses(int * num, char type){
+void getFilterPasses(int &passes, char type){
 	cout << "How many times would you like to run the filter?" << endl;
-	cin >> std::ws;
-	string in;
-	getline(cin, in);
-	*num = stoi(in);
+	cin >> ws;
+	
+	string temp_input;
+	getline(cin, temp_input);//Taking input as a string then casting it to an int is safer?
+	passes = stoi(temp_input);
+	
 	cout << endl;
 }
 
@@ -264,18 +260,19 @@ int main(void){
 	int height, width, grayscale;
 	string file_name;
 
-	loadImage(image_array, &width, &height, &grayscale, &file_name);
+	loadImage(image_array, width, height, grayscale, file_name);
 
 	int * expanded = add1pxBorder(image_array, width, height);
 	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width + 2));
 
 	//Get the filter type and number of passes.
 	char filter_type;
-	getFilterType(&filter_type);
+	getFilterType(filter_type);
+	
 	int filter_passes;
-	getFilterPasses(&filter_passes, filter_type);
+	getFilterPasses(filter_passes, filter_type);
 
-	double * time = (double*)malloc(sizeof(double));//Why????
+	double time = 0;
 	if(filter_type<'8'){//For serial filters
 		cout << "Applying Filter..." << endl;
 
@@ -284,15 +281,15 @@ int main(void){
 			runFilter(expanded, outimg, width + 2, height + 2, filter_type);
 			memcpy(expanded, outimg, sizeof(int)*(width + 2)*(height + 2));
 		}
-		*time = (clock() - start) / (double)CLOCKS_PER_SEC;//Stop timer
+		time = (clock() - start) / (double)CLOCKS_PER_SEC;//Stop timer
 	}
 	else{//For CUDA Filters
 		launchKernel(expanded, outimg, width + 2, height + 2, filter_type, filter_passes, time);
 	}
 
 	//Print out time it took to complete filter.
-	cout << "Finished Applying Filter." << endl << "It took " << *time << "s to complete. ";
-	if (*time == 0){
+	cout << "Finished Applying Filter." << endl << "It took " << time << "s to complete. ";
+	if (time == 0){
 		cout << "(Less .001 seconds)";//The timer  am using only goes to 1/1000 of a second, so a value 0 means the calculation time is less than 0.001s.
 	}
 	cout << endl << endl;
@@ -301,7 +298,6 @@ int main(void){
 	int * final_image = remove1pxBorder(outimg, width, height);
 	saveImage(final_image, width, height, grayscale, file_name);
 	
-	free(time);
 	free(image_array);
 	free(expanded);
 	free(outimg);
