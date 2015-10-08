@@ -27,7 +27,7 @@ void loadImage(int * image_array, int &width, int &height, int &grayscale, strin
 	cout << endl << "Loading image \""+ file +".pgm\" from Images..." << endl;
 	image_path ="Images/" +file + ".pgm";
 
-	//Load .pgm (P2/ASCII Format) image into a 2D short array.
+	//Load .pgm (P2/ASCII Format) image into a 2D array.
 	ifstream image_in(image_path);
 	if (image_in)
 	{
@@ -66,8 +66,8 @@ void loadImage(int * image_array, int &width, int &height, int &grayscale, strin
 
 		//Get grayscale value
 		getline(image_in, line);
-		grayscale=stoi(line);//String to int conversion
-		cout << "The grayscale range for this image is 0 to " <<grayscale<<"."<< endl;
+		grayscale = stoi(line);//String to int conversion
+		cout << "The grayscale range for this image is 0 to " << grayscale << "." << endl;
 
 		//Store numbers into the 2D int array
 		for (int i = 0; i < width * height; i++){
@@ -95,7 +95,7 @@ void getFilterType(char &type){
 	cout << "7: Sobel Operator (Serial)" << endl;
 	cout << "8: Box  Blur (CUDA)" << endl;
 	cout << "9: Sobel Operator (CUDA)" << endl;
-	cin >> ws; //Eat up the previous white spaces in buffer 
+	cin >> ws; //Eat up the previous white spaces in buffer
 	type = getchar();
 	cout << endl;
 }
@@ -103,11 +103,11 @@ void getFilterType(char &type){
 void getFilterPasses(int &passes, char type){
 	cout << "How many times would you like to run the filter?" << endl;
 	cin >> ws;
-	
+
 	string temp_input;
 	getline(cin, temp_input);//Taking input as a string then casting it to an int is safer?
 	passes = stoi(temp_input);
-	
+
 	cout << endl;
 }
 
@@ -125,8 +125,8 @@ void saveImage(int * image_array, const int width, const int height, const int  
 	int total = (width*height);
 	int num_count = 0;
 	for (int i = 0; i < total; i++){
-		if (image_array[i] < 0){
-			image_out << to_string(0) + " ";//This is a cheaty way of removing the corrput borders. It is not a subsitute for correct edge detection in the filter.
+		if (image_array[i] < 0){//This is a cheaty way of removing the corrput borders. It is not a subsitute for correct edge detection in the filter.
+			image_out << to_string(0) + " ";
 		}
 		else{
 			image_out << to_string(image_array[i]) + " ";
@@ -170,7 +170,7 @@ int* remove1pxBorder(int const * in_arr, int const width, int const height){
 }
 
 void applyConvolutionStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height, const float stencil[3][3]){
-	
+
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0][0];
 	float um = (float)(in_arr[p - width]) * stencil[0][1];
 	float ur = (float)(in_arr[p - width + 1]) * stencil[0][2];
@@ -251,7 +251,7 @@ void runFilter(int const  * in_arr, int  * out_arr, int const width, int const h
 		}
 }
 
-int main(void){
+int main(){
 	cout << "P2/ASCII PGM (Portable Gray Map) 1024x1024 Filter" << endl << endl;
 
 	//If you want bigger image files to be accpeted, change this allocated memory size accordingly.
@@ -268,7 +268,7 @@ int main(void){
 	//Get the filter type and number of passes.
 	char filter_type;
 	getFilterType(filter_type);
-	
+
 	int filter_passes;
 	getFilterPasses(filter_passes, filter_type);
 
@@ -297,7 +297,7 @@ int main(void){
 	//Remove the border and save the image
 	int * final_image = remove1pxBorder(outimg, width, height);
 	saveImage(final_image, width, height, grayscale, file_name);
-	
+
 	free(image_array);
 	free(expanded);
 	free(outimg);

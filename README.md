@@ -2,14 +2,14 @@
 **This repository is for a research project.**
 
 An image processing program that uses CUDA. This program includes two methods of processing image data and applying filters:
--	Through normal C++ functions (CPU/Serial Processing)
--	Through Nvidia’s CUDA kernels (GPU/Parallel Processing)
+-	Through normal C++ functions (Host/CPU, Serial Processing)
+-	Through Nvidia’s CUDA kernels (Device/GPU, Parallel Processing)
 
 This program takes in a valid P2 (ASCII Encoded) .PGM file and outputs a new .PGM file with the applied filter of choice. The main image filters featured in this program are the Sobel Operator/Filter and a Blur filter. Options are given to run a filter multiple times on the input image.
 .PGM files must have dimensions no greater than 1024x1024 (arbitrary size limit, I will change this later so that it accepts any arbitrary size).
 
 There are still some weird bugs, but it works mostly as I intended to.
-To complile this project, run in a Linux terminal: nvcc Main.cu Kernel.cu -std=c++11
+To compile this project, run make with the command: make
 
 You can also import these files into Microsoft Visual Studio (or any other IDE that supports CUDA) and compile it from there. Obviously, you must have the CUDA development kit and nvcc compiler installed as well (https://developer.nvidia.com/cuda-toolkit).
 
