@@ -1,87 +1,17 @@
 #include "Main.cuh"
 #include "Kernel.cuh"
+#include "Load.cuh"
 
 #include <cmath>
 #include <ctime>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 using namespace std;
 
 void errorExit(string error){
 	cout << error << endl << "Press ENTER to exit.";
 	getchar();
 	exit(EXIT_FAILURE);
-}
-
-void loadImage(int * image_array, int &width, int &height, int &grayscale, string &file)
-{
-	string image_path;
-	string line;
-	string dimensions[2];
-	int i = 0;
-
-	cout << "Load which image from Images sub-folder? (Enter file name only) ";
-	getline(cin, file);
-
-	cout << endl << "Loading image \""+ file +".pgm\" from Images..." << endl;
-	image_path ="Images/" +file + ".pgm";
-
-	//Load .pgm (P2/ASCII Format) image into a 2D array.
-	ifstream image_in(image_path);
-	if (image_in)
-	{
-		getline(image_in, line);//Get .pgm "Magic number"
-		if (line == "P2")
-		{
-			cout << "Valid P2/ASCII .pgm file found." << endl;
-		}
-		else{
-			errorExit("Not a valid File.  Must be .pgm P2/ASCII.");
-		}
-
-		//Skip over any comments
-		getline(image_in, line);
-		while (line.at(0) == '#'){
-			getline(image_in, line);
-		}
-
-		//Get width and height dimensions of image
-		//Use string stream to break line up into a string array then convert to ints
-		stringstream ssin(line);
-		while (ssin && i < 2){
-			ssin >> dimensions[i];
-			i++;
-		}
-
-		width = stoi(dimensions[0]);//Now convert strings to integers
-		height = stoi(dimensions[1]);
-
-		if (width > 1024 || height > 1024){//Change this check to accommodate larger images. Make sure enough memory is allocated.
-			errorExit("Incorrect image dimensions. Max size is 1024x1024.");
-		}
-		else{
-			cout << "The image dimensions are : " << width << "x" << height << endl;
-		}
-
-		//Get grayscale value
-		getline(image_in, line);
-		grayscale = stoi(line);//String to int conversion
-		cout << "The grayscale range for this image is 0 to " << grayscale << "." << endl;
-
-		//Store numbers into the 2D int array
-		for (int i = 0; i < width * height; i++){
-			image_in >> ws;//Extracts as many whitespace characters as possible from the current position in the input sequence.
-			getline(image_in, line, ' ');
-			image_array[i] = stoi(line);
-		}
-		image_in.close();//close ifstream
-	}
-	else{
-		errorExit("File not found.");
-	}
-
-	cout << "Finished loading image." << endl << endl;
 }
 
 void getFilterType(char &type){
@@ -111,7 +41,7 @@ void getFilterPasses(int &passes, char type){
 	cout << endl;
 }
 
-void saveImage(int * image_array, const int width, const int height, const int  grayscale, string file_name){
+void saveImage(int *image_array, const int width, const int height, const int  grayscale, string file_name){
 	cout << "Saving image as "+ file_name +"_output.pgm to the Output sub-folder..." << endl;
 	fstream image_out;
 	image_out.open("Output/"+ file_name + "_output.pgm", fstream::out);
@@ -144,10 +74,10 @@ void saveImage(int * image_array, const int width, const int height, const int  
 	cout << "Image Saved." << endl << endl;
 }
 
-int* add1pxBorder(int const * in_arr, int const width, int const height){
+int* add1pxBorder(int const *in_arr, int const width, int const height){
 
 	int W = width + 2, H = height + 2;
-	int * out = (int*)malloc(sizeof(int)*W * H);
+	int *out = (int*)malloc(sizeof(int)*W * H);
 
 	memset(&out[0], 0, sizeof(int)*W);
 	memset(&out[W * height], 0, sizeof(int)*W);
@@ -159,17 +89,17 @@ int* add1pxBorder(int const * in_arr, int const width, int const height){
 	return out;
 }
 
-int* remove1pxBorder(int const * in_arr, int const width, int const height){
-	int * out_arr = (int*)malloc(sizeof(int)*width * height);
+int* remove1pxBorder(int const *in_arr, int const width, int const height){
+	int *out_arr = (int*)malloc(sizeof(int) * width * height);
 
 	for (int y = 0; y < height; y++){
-		memcpy(&out_arr[y*width], &in_arr[(y + 1)*(width+2)+1], sizeof(int)*width);
+		memcpy(&out_arr[y * width], &in_arr[(y + 1) * (width+2)+1], sizeof(int) * width);
 	}
 
 	return out_arr;
 }
 
-void applyConvolutionStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height, const float stencil[3][3]){
+void applyConvolutionStencil(int const *in_arr, int *out_arr, int p, int const width, int const height, const float stencil[3][3]){
 
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0][0];
 	float um = (float)(in_arr[p - width]) * stencil[0][1];
@@ -187,7 +117,7 @@ void applyConvolutionStencil(int const * in_arr, int  * out_arr, int p, int cons
 
 }
 
-void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const width, int const height, const int stencil[6][3]){
+void applySobelStencil(int const *in_arr, int *out_arr, int p, int const width, int const height, const int stencil[6][3]){
 
 	int ul = (in_arr[p - width - 1]) * stencil[0][0];
 	int um = (in_arr[p - width]) * stencil[0][1];
@@ -211,10 +141,10 @@ void applySobelStencil(int const * in_arr, int  * out_arr, int p, int const widt
 	lr = (in_arr[p + width + 1]) * stencil[5][2];
 	int y_sum = ul + um + ur + ml + mm + mr + ll + lm + lr;
 
-	out_arr[p] = (int)pow((y_sum*y_sum + x_sum*x_sum), 0.5);
+	out_arr[p] = (int)pow((y_sum * y_sum + x_sum * x_sum), 0.5);
 }
 
-void runFilter(int const  * in_arr, int  * out_arr, int const width, int const height, char filter_type){
+void runFilter(int const *in_arr, int *out_arr, int const width, int const height, char filter_type){
 		for (int y = 1; y < height - 1; y++){
 			for (int x = 1; x < width - 1; x++){
 				int p = y * width + x;
@@ -256,11 +186,13 @@ int main(){
 
 	//If you want bigger image files to be accpeted, change this allocated memory size accordingly.
 	//Keep in mind that you must have enough space for the additonal 1 pixel border that will go around the image during convolution.
-	int * image_array = (int *)malloc(sizeof(int) * 1048576);//1024*1024 = 1048576
+	int *image_array = (int*)malloc(sizeof(int) * 1048576);//1024 * 1024 = 1048576
 	int height, width, grayscale;
 	string file_name;
 
-	loadImage(image_array, width, height, grayscale, file_name);
+	//***Uncomment the method of image loading you want to use. Leave one commented out.***
+	//manualLoadImage(image_array, width, height, grayscale, file_name);
+	directLoadImage(image_array, width, height, grayscale, file_name); //Must do ./filter.out < image.pgm
 
 	int * expanded = add1pxBorder(image_array, width, height);
 	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width + 2));
@@ -272,7 +204,7 @@ int main(){
 	int filter_passes;
 	getFilterPasses(filter_passes, filter_type);
 
-	double time = 0;
+	double timer = 0;
 	if(filter_type<'8'){//For serial filters
 		cout << "Applying Filter..." << endl;
 
@@ -281,21 +213,21 @@ int main(){
 			runFilter(expanded, outimg, width + 2, height + 2, filter_type);
 			memcpy(expanded, outimg, sizeof(int)*(width + 2)*(height + 2));
 		}
-		time = (clock() - start) / (double)CLOCKS_PER_SEC;//Stop timer
+		timer = (clock() - start) / (double)CLOCKS_PER_SEC;//Stop timer
 	}
 	else{//For CUDA Filters
-		launchKernel(expanded, outimg, width + 2, height + 2, filter_type, filter_passes, time);
+		launchKernel(expanded, outimg, width + 2, height + 2, filter_type, filter_passes, timer);
 	}
 
 	//Print out time it took to complete filter.
-	cout << "Finished Applying Filter." << endl << "It took " << time << "s to complete. ";
-	if (time == 0){
+	cout << "Finished Applying Filter." << endl << "It took " << timer << "s to complete. ";
+	if (timer == 0){
 		cout << "(Less .001 seconds)";//The timer  am using only goes to 1/1000 of a second, so a value 0 means the calculation time is less than 0.001s.
 	}
 	cout << endl << endl;
 
 	//Remove the border and save the image
-	int * final_image = remove1pxBorder(outimg, width, height);
+	int *final_image = remove1pxBorder(outimg, width, height);
 	saveImage(final_image, width, height, grayscale, file_name);
 
 	free(image_array);
