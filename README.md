@@ -1,5 +1,5 @@
 # P2/ASCII PGM (Portable Gray Map) Image Filter
-**This repository is for a research project.**
+**This repository is for a research project. This repository will eventually be made private when more specific filter code is added.**
 
 **About:**
 
@@ -30,13 +30,17 @@ Some of the sample P2 .PGM files used in this project were obtained at: http://p
 
 **Loading Methods:**
 
-To load an image, there are two methods available. The first (enabled by default) has the program ask you to type in the name of the image file. This file must be located in the "Images" subfolder. This first method is internally labeled as manualLoadImage. The second method can be enabled by commenting out the call to the manualLoadImage method and uncommenting the line that calls directLoadImage. The program then needs to be recompiled. Once this is done, images are now loaded with this bash syntax: "./filter.out < /path/to/image.pgm" After running this command, the program will automatically load the piped in image file, without giving you a prompt to enter the file name. Both of these methods accomplish the same thing, but the directLoadImage allows you to pipe in image files that are not placed within the Images sub folder. Either way, the final image is placed into the Output subfolder.
+To load an image, there are two methods available. The first (enabled by default) has the program ask you to type in the name of the image file. This file must be located in the "Images" subfolder. This first method is internally labeled as manualLoadImage. The second method (CURRENTLY BROKEN) can be enabled by commenting out the call to the manualLoadImage method and uncommenting the line that calls directLoadImage. The program then needs to be recompiled. Once this is done, images are now loaded with this bash syntax: "./filter.out < /path/to/image.pgm" After running this command, the program will automatically load the piped in image file, without giving you a prompt to enter the file name. Both of these methods accomplish the same thing, but the directLoadImage allows you to pipe in image files that are not placed within the Images sub folder. Either way, the final proccessed image is placed into the Output subfolder. There is really no need for this other method, but I wanted to experiment with new ways of loading image data.
 
 
-**Planned Features:**
+**Planned Features and Improvements/Fixes:**
 
-Remove the arbitrary image size limit. Do do this I will replace the main data array with a vector. I will need to use CUDA specific vectors instead of the standard C++ STL ones in order for them to be passed to the kernels. http://docs.nvidia.com/cuda/thrust/index.html#vectors
+Fix the alternate file input method.
 
-Currently, both methods of processing an image (CPU/Serial and GPU/CUDA/Parallel) pass through the image data in a linear fashion. In the future, I will implement a Fast Fourier Transformation (FFT) using CUDA's FFT library. This will hopefully increase the CUDA filter preformance even more. I might add a FFT method for the CPU/Serial filters, but they would not be using the CUDA FFT library.
+Remove the arbitrary image size limit. To do this, I will replace the main data array with a vector. I will need to use CUDA specific vectors instead of the C++ STL ones in order for them to be passed to the kernels. http://docs.nvidia.com/cuda/thrust/index.html#vectors
 
-I also hope to add the ability to display loaded images from within the program. Using OpenGL, you would be able to display an unfiltered image, run various filters on the image, and see the resutls diplayed in real time from within the program. This won't be added for a long time, and it will only be added after the FFT is implemeted.
+Add the ability to display loaded images from within the program. Using OpenGL, you would be able to display an unfiltered image, run various filters on the image, and see the results displayed in real time from within the program. I will try to make the OpenGL display independent of the CUDA library. This will allow the display method to be modular.
+
+As an aside, I will be looking into direct memory access (DMA) for another part of the research project. Implementing DMA with this filter is not what I intend to do, but I might use this program as a testing ground.
+
+Currently, both methods of processing an image (CPU/Serial and GPU/CUDA/Parallel) pass through the image data in a linear fashion. In the future, I will implement a Fast Fourier Transformation (FFT) using CUDA's FFT library. This will hopefully increase the CUDA filter performance even more. I might add a FFT method for the CPU/Serial filters, but they would not be using the CUDA FFT library as I want them to only use the CPU. This is done for performance comparison sake (serial vs parallel). This will be done much later, after the fixes and OpenGL stuff is added.
