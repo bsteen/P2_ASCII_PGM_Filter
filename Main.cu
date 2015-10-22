@@ -191,8 +191,8 @@ int main(){
 	string file_name;
 
 	//***Uncomment the method of image loading you want to use. Leave one commented out.***
-	//manualLoadImage(image_array, width, height, grayscale, file_name);
-	directLoadImage(image_array, width, height, grayscale, file_name); //Must do ./filter.out < image.pgm
+	manualLoadImage(image_array, width, height, grayscale, file_name);
+	//directLoadImage(image_array, width, height, grayscale, file_name); //Must do ./filter.out < image.pgm
 
 	int * expanded = add1pxBorder(image_array, width, height);
 	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width + 2));
