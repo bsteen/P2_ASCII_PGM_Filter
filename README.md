@@ -11,6 +11,9 @@ This program takes in a valid P2 (ASCII Encoded) .PGM file and outputs a new .PG
 .PGM files must have dimensions **no greater than 1024x1024** (arbitrary size limit, I will change this later so that it accepts any arbitrary size).
 There are still some weird bugs, but the program now works mostly as I intended it to.
 
+**Purpose:**
+
+The purpose of this project is to act as learning experience and introduce me to programming kernels in CUDA.
 
 **Compiling and Running:**
 
