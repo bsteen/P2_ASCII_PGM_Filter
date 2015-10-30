@@ -38,11 +38,14 @@ To load an image, there are two methods available. The first (enabled by default
 
 **Planned Features and Improvements/Fixes:**
 
-Fix the alternate file input method.
+Current Task:
+Add the ability to display loaded images from within the program. Using OpenGL, you will be able to display an unfiltered image, run various filters on the image, and see the results displayed in real time from within the program. I will try to make the OpenGL display independent of the CUDA library. This will allow the display method to be modular.
+
+Other Tasks:
+
+Fix the alternate file input method (manualLoadImage).
 
 Remove the arbitrary image size limit. To do this, I will replace the main data array with a vector. I will need to use CUDA specific vectors instead of the C++ STL ones in order for them to be passed to the kernels. http://docs.nvidia.com/cuda/thrust/index.html#vectors
-
-Add the ability to display loaded images from within the program. Using OpenGL, you would be able to display an unfiltered image, run various filters on the image, and see the results displayed in real time from within the program. I will try to make the OpenGL display independent of the CUDA library. This will allow the display method to be modular.
 
 As an aside, I will be looking into direct memory access (DMA) for another part of the research project. Implementing DMA with this filter is not what I intend to do, but I might use this program as a testing ground.
 
