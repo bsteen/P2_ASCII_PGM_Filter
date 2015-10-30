@@ -1,16 +1,23 @@
 #include "Main.cuh"
 #include "Kernel.cuh"
-
 #include <iostream>
 #include <ctime>
 using namespace std;
+
+//If CUDA function was no succesful, print out the error and exit.
+void HANDLE_CUDA_ERROR(cudaError_t err, int line_num){
+	if (err != cudaSuccess){
+		printf("\nCUDA ERROR in %s:\n%s at line %i.\n\n", __FILE__, cudaGetErrorString(err), line_num);
+		exit(EXIT_FAILURE);
+	}
+}
 
 __global__ void convolutionKernel(int * in_arr, int  * out_arr, int width, int height, float * stencil){
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
 	int grid_width = gridDim.x * blockDim.x;
 	int p = row * grid_width + col;
-	
+
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0];
 	float um = (float)(in_arr[p - width]) * stencil[1];
 	float ur = (float)(in_arr[p - width + 1]) * stencil[2];
@@ -57,19 +64,11 @@ __global__ void sobelKernel(int  * in_arr, int * out_arr, int const width, int c
 	out_arr[p] = (int)pow((double)(y_sum*y_sum + x_sum*x_sum), 0.5);
 }
 
-//If CUDA function was no succesful, print out the error and exit.
-void HANDLE_CUDA_ERROR(cudaError_t err, int line_num){
-	if (err != cudaSuccess){
-		printf("\nCUDA ERROR in %s:\n%s at line %i.\n\n", __FILE__, cudaGetErrorString(err), line_num);
-		exit(EXIT_FAILURE);
-	}
-}
-
 void launchKernel(int  * in_arr, int  * out_arr, int width, int height, char const filter_type, int filter_passes, double &time){
 	//Check to see if there is a CUDA enabled device
 	int count = 0;
 	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&count), __LINE__);
-	
+
 	cudaDeviceProp props;
 	cudaGetDeviceProperties(&props, 0);
 	cout << "CUDA enabled device found: "<<props.name << " @" << props.clockRate/1000 << "Mhz" << endl;

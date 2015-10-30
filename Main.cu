@@ -1,12 +1,18 @@
 #include "Main.cuh"
 #include "Kernel.cuh"
 #include "Load.cuh"
-
 #include <cmath>
+#include <cstring>
 #include <ctime>
 #include <fstream>
 #include <iostream>
 using namespace std;
+
+//P2/ASCII PGM Image Filter, Version 1.0
+//This program was made by Benjamin Steenkamer.
+//Most of the code in these files started out as C code but eventually shifted into C++.
+//There is still some C type code in here, but right now I more concerned with implementing
+//other major features than updating code that already works.
 
 void errorExit(string error){
 	cout << error << endl << "Press ENTER to exit.";
@@ -14,7 +20,7 @@ void errorExit(string error){
 	exit(EXIT_FAILURE);
 }
 
-void getFilterType(char &type){
+char getFilterType(){
 	cout << "Which filter would you like to run?" << endl;
 	cout << "1: Box Blur (Serial)" << endl;
 	cout << "2: Gaussian Approx. (Serial)" << endl;
@@ -26,19 +32,21 @@ void getFilterType(char &type){
 	cout << "8: Box  Blur (CUDA)" << endl;
 	cout << "9: Sobel Operator (CUDA)" << endl;
 	cin >> ws; //Eat up the previous white spaces in buffer
-	type = getchar();
+	char type = getchar();
 	cout << endl;
+	return type;
 }
 
-void getFilterPasses(int &passes, char type){
+int getFilterPasses(){
 	cout << "How many times would you like to run the filter?" << endl;
 	cin >> ws;
 
 	string temp_input;
-	getline(cin, temp_input);//Taking input as a string then casting it to an int is safer?
-	passes = stoi(temp_input);
-
+	getline(cin, temp_input);
+	int passes = stoi(temp_input);
 	cout << endl;
+
+	return passes;
 }
 
 void saveImage(int *image_array, const int width, const int height, const int  grayscale, string file_name){
@@ -86,6 +94,7 @@ int* add1pxBorder(int const *in_arr, int const width, int const height){
 		out[(y + 1)*W] = out[(y + 1)*W + width] = 0;
 		memcpy(&out[(y + 1)*W + 1], &in_arr[y*width], sizeof(int)*width);
 	}
+
 	return out;
 }
 
@@ -114,7 +123,6 @@ void applyConvolutionStencil(int const *in_arr, int *out_arr, int p, int const w
 	float lr = (float)(in_arr[p + width + 1]) * stencil[2][2];
 
 	out_arr[p] = (int)(ul + um + ur + ml + mm + mr + ll + lm + lr);
-
 }
 
 void applySobelStencil(int const *in_arr, int *out_arr, int p, int const width, int const height, const int stencil[6][3]){
@@ -182,11 +190,11 @@ void runFilter(int const *in_arr, int *out_arr, int const width, int const heigh
 }
 
 int main(){
-	cout << "P2/ASCII PGM (Portable Gray Map) 1024x1024 Filter" << endl << endl;
+	cout << "P2/ASCII PGM 1024x1024 Filter" << endl << endl;
 
 	//If you want bigger image files to be accpeted, change this allocated memory size accordingly.
 	//Keep in mind that you must have enough space for the additonal 1 pixel border that will go around the image during convolution.
-	int *image_array = (int*)malloc(sizeof(int) * 1048576);//1024 * 1024 = 1048576
+	int* image_array = (int*)malloc(sizeof(int) * 1048576);//1024 * 1024 = 1048576
 	int height, width, grayscale;
 	string file_name;
 
@@ -194,15 +202,12 @@ int main(){
 	manualLoadImage(image_array, width, height, grayscale, file_name);
 	//directLoadImage(image_array, width, height, grayscale, file_name); //Must do ./filter.out < image.pgm
 
-	int * expanded = add1pxBorder(image_array, width, height);
-	int * outimg = (int*)malloc(sizeof(int) * (height + 2) * (width + 2));
+	int* expanded = add1pxBorder(image_array, width, height);
+	int* outimg = (int*)malloc(sizeof(int) * (height + 2) * (width + 2));
 
 	//Get the filter type and number of passes.
-	char filter_type;
-	getFilterType(filter_type);
-
-	int filter_passes;
-	getFilterPasses(filter_passes, filter_type);
+	char filter_type = getFilterType();
+	int filter_passes = getFilterPasses();
 
 	double timer = 0;
 	if(filter_type<'8'){//For serial filters
@@ -211,7 +216,7 @@ int main(){
 		clock_t start = clock();//For time calculation. Start timer
 		for (int c = 0; c < filter_passes; c++){
 			runFilter(expanded, outimg, width + 2, height + 2, filter_type);
-			memcpy(expanded, outimg, sizeof(int)*(width + 2)*(height + 2));
+			memcpy(expanded, outimg, sizeof(int) * (width + 2) * (height + 2));
 		}
 		timer = (clock() - start) / (double)CLOCKS_PER_SEC;//Stop timer
 	}
@@ -221,8 +226,8 @@ int main(){
 
 	//Print out time it took to complete filter.
 	cout << "Finished Applying Filter." << endl << "It took " << timer << "s to complete. ";
-	if (timer == 0){
-		cout << "(Less .001 seconds)";//The timer  am using only goes to 1/1000 of a second, so a value 0 means the calculation time is less than 0.001s.
+	if (timer == 0){// A value 0 from the timer means the calculation time is less than 0.001s.
+		cout << "(Less .001 seconds)";
 	}
 	cout << endl << endl;
 
