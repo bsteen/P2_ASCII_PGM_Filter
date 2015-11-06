@@ -5,7 +5,7 @@
   <img src="https://github.com/bsteen/P2_ASCII_PGM_Filter/blob/master/sample.gif" alt="Sample filtered images"/>
 </p>
 
-*Images scaled down from 512x512 to 300x300.
+*Sample images shown above are scaled down from 512x512 to 300x300.
 
 **About:**
 
