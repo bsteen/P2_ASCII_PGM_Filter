@@ -1,9 +1,11 @@
 # P2/ASCII PGM (Portable Gray Map) Image Filter
 **This repository is for a research project. This repository will eventually be made private when more specific filter code is added.**
 
-![Sample filtered images](https://github.com/bsteen/P2_ASCII_PGM_Filter/blob/master/sample.gif)
+<p align="center">
+  <img src="https://github.com/bsteen/P2_ASCII_PGM_Filter/blob/master/sample.gif" alt="Sample filtered images"/>
+</p>
 
-*Images scaled down from 512x512
+*Images scaled down from 512x512 to 300x300.
 
 **About:**
 
