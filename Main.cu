@@ -1,8 +1,7 @@
 #include "Main.cuh"
 #include "Kernel.cuh"
 #include "Load.cuh"
-#include <cmath>
-#include <cstring>
+#include "Window.hpp"
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -232,14 +231,16 @@ int main(){
 	cout << endl << endl;
 
 	//Remove the border and save the image
-	int *final_image = remove1pxBorder(outimg, width, height);
+	int* final_image = remove1pxBorder(outimg, width, height);
+
+	cout << "Displaying final image..." << endl;
+	displayImage(final_image, width, height);
+
 	saveImage(final_image, width, height, grayscale, file_name);
 
 	free(image_array);
 	free(expanded);
 	free(outimg);
-
-	cout << "Press ENTER to exit.";
-	getchar();
+	
 	return 0;
 }

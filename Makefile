@@ -1,8 +1,10 @@
 compile: Main.o Kernel.o Load.o
-	nvcc obj/Main.o obj/Kernel.o obj/Load.o -o filter.out -std=c++11
+	nvcc -o filter.out obj/Main.o obj/Kernel.o obj/Load.o Window.cpp -lsfml-window -lsfml-system -lGLEW -lGL -std=c++11
 run:
 	clear
 	./filter.out
+
+compile-run: compile run
 
 Main.o:
 	nvcc -c Main.cu -o obj/Main.o -std=c++11
@@ -10,7 +12,7 @@ Main.o:
 Load.o:
 	nvcc -c Load.cu -o obj/Load.o -std=c++11
 
-Kernel.o: Kernel.cu
+Kernel.o:
 	nvcc -c Kernel.cu -o obj/Kernel.o -std=c++11
 
 clean: #Remove object files and executable
