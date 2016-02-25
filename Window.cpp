@@ -26,20 +26,6 @@ const GLchar* fragmentSource =
                 "outColor = texture(tex, Texcoord);"
             "}";
 
-char* toRGB(int* imageData, int width, int height){
-	char* newImageData = new char[width*height*3];
-
-	int j = 0;
-	for(int i = 0; i < width*height; i++){
-		newImageData[j] = imageData[i];//Red
-		newImageData[j + 1] = imageData[i];//Blue
-		newImageData[j + 2] = imageData[i];//Green
-		j += 3;
-	}
-
-	return newImageData;
-}
-
 void printShaderCompileStatus(GLuint shader, string name){
     GLint status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
@@ -120,14 +106,16 @@ void displayImage(int* imageData, int width, int height){
     glEnableVertexAttribArray(texAttrib);
     glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, vertexByteSize, (void*)(sizeof(GLfloat) * 2));
 
-    //Convert greyscale image to rgb.
-    char* rgbImageData = toRGB(imageData, width, height);
+    unsigned char newImageData[width * height];//For some reason, OpenGL doesn't seem to like the image data as ints,
+    for(int i = 0; i < width * height; i++){     //so I convert it to unsigned chars before I make it a texture.
+        newImageData[i] = imageData[i];
+    }
 
     //Create a texture from imageData
     GLuint imageTexture;
     glGenTextures(1, &imageTexture);
     glBindTexture(GL_TEXTURE_2D, imageTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, rgbImageData);//Make the texture.
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, width, height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, newImageData);//Make the texture.
 
     //Set texture parameters.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);//X wrapping
@@ -168,6 +156,4 @@ void displayImage(int* imageData, int width, int height){
     glDeleteBuffers(1, &elementArrayObject);
     glDeleteBuffers(1, &vertexBufferObject);
     glDeleteVertexArrays(1, &vertexArrayObject);
-
-    delete rgbImageData;
 }
