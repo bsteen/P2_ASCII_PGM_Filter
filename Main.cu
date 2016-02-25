@@ -30,9 +30,11 @@ char getFilterType(){
 	cout << "7: Sobel Operator (Serial)" << endl;
 	cout << "8: Box  Blur (CUDA)" << endl;
 	cout << "9: Sobel Operator (CUDA)" << endl;
+
 	cin >> ws; //Eat up the previous white spaces in buffer
 	char type = getchar();
 	cout << endl;
+
 	return type;
 }
 
@@ -48,7 +50,7 @@ int getFilterPasses(){
 	return passes;
 }
 
-void saveImage(int *image_array, const int width, const int height, const int  grayscale, string file_name){
+void saveImage(int* image_array, const int width, const int height, const int  grayscale, string file_name){
 	cout << "Saving image as "+ file_name +"_output.pgm to the Output sub-folder..." << endl;
 	fstream image_out;
 	image_out.open("Output/"+ file_name + "_output.pgm", fstream::out);
@@ -59,8 +61,9 @@ void saveImage(int *image_array, const int width, const int height, const int  g
 	image_out << to_string(width) + " " + to_string(height) << endl;
 	image_out << to_string(grayscale) << endl;
 
-	int total = (width*height);
+	int total = (width * height);
 	int num_count = 0;
+
 	for (int i = 0; i < total; i++){
 		if (image_array[i] < 0){//This is a cheaty way of removing the corrput borders. It is not a subsitute for correct edge detection in the filter.
 			image_out << to_string(0) + " ";
@@ -78,26 +81,28 @@ void saveImage(int *image_array, const int width, const int height, const int  g
 
 	image_out.close();
 
-	cout << "Image Saved." << endl << endl;
+	cout << "Image saved." << endl << endl;
 }
 
-int* add1pxBorder(int const *in_arr, int const width, int const height){
+int* add1pxBorder(int* const in_arr, int const width, int const height){
 
-	int W = width + 2, H = height + 2;
-	int *out = (int*)malloc(sizeof(int)*W * H);
+	int W = width + 2;
+	int H = height + 2;
 
-	memset(&out[0], 0, sizeof(int)*W);
-	memset(&out[W * height], 0, sizeof(int)*W);
+	int* out = (int*)malloc(sizeof(int)* W * H);
+
+	memset(&out[0], 0, sizeof(int) * W);
+	memset(&out[W * height], 0, sizeof(int) * W);
 
 	for (int y = 0; y < height; y++){
 		out[(y + 1)*W] = out[(y + 1)*W + width] = 0;
-		memcpy(&out[(y + 1)*W + 1], &in_arr[y*width], sizeof(int)*width);
+		memcpy(&out[(y + 1) * W + 1], &in_arr[y * width], sizeof(int) * width);
 	}
 
 	return out;
 }
 
-int* remove1pxBorder(int const *in_arr, int const width, int const height){
+int* remove1pxBorder(int* const in_arr, int const width, int const height){
 	int *out_arr = (int*)malloc(sizeof(int) * width * height);
 
 	for (int y = 0; y < height; y++){
@@ -107,7 +112,7 @@ int* remove1pxBorder(int const *in_arr, int const width, int const height){
 	return out_arr;
 }
 
-void applyConvolutionStencil(int const *in_arr, int *out_arr, int p, int const width, int const height, const float stencil[3][3]){
+void applyConvolutionStencil(int* const in_arr, int* out_arr, int p, int const width, int const height, const float stencil[3][3]){
 
 	float ul = (float)(in_arr[p - width - 1]) * stencil[0][0];
 	float um = (float)(in_arr[p - width]) * stencil[0][1];
@@ -124,7 +129,7 @@ void applyConvolutionStencil(int const *in_arr, int *out_arr, int p, int const w
 	out_arr[p] = (int)(ul + um + ur + ml + mm + mr + ll + lm + lr);
 }
 
-void applySobelStencil(int const *in_arr, int *out_arr, int p, int const width, int const height, const int stencil[6][3]){
+void applySobelStencil(int* const in_arr, int* out_arr, int p, int const width, int const height, const int stencil[6][3]){
 
 	int ul = (in_arr[p - width - 1]) * stencil[0][0];
 	int um = (in_arr[p - width]) * stencil[0][1];
@@ -151,7 +156,7 @@ void applySobelStencil(int const *in_arr, int *out_arr, int p, int const width, 
 	out_arr[p] = (int)pow((y_sum * y_sum + x_sum * x_sum), 0.5);
 }
 
-void runFilter(int const *in_arr, int *out_arr, int const width, int const height, char filter_type){
+void runFilter(int* const in_arr, int* out_arr, int const width, int const height, char filter_type){
 		for (int y = 1; y < height - 1; y++){
 			for (int x = 1; x < width - 1; x++){
 				int p = y * width + x;
@@ -209,7 +214,7 @@ int main(){
 	int filter_passes = getFilterPasses();
 
 	double timer = 0;
-	if(filter_type<'8'){//For serial filters
+	if(filter_type < '8'){//For serial filters
 		cout << "Applying Filter..." << endl;
 
 		clock_t start = clock();//For time calculation. Start timer
@@ -233,7 +238,7 @@ int main(){
 	//Remove the border and save the image
 	int* final_image = remove1pxBorder(outimg, width, height);
 
-	cout << "Displaying final image..." << endl;
+	cout << "Displaying final image...(Press Escape to continue)" << endl;
 	displayImage(final_image, width, height);
 
 	saveImage(final_image, width, height, grayscale, file_name);
@@ -241,6 +246,6 @@ int main(){
 	free(image_array);
 	free(expanded);
 	free(outimg);
-	
+
 	return 0;
 }
