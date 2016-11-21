@@ -7,11 +7,8 @@
 #include <iostream>
 using namespace std;
 
-//P2/ASCII PGM Image Filter, Version 1.0
+//P2/ASCII PGM Image Filter, Version 1.1
 //This program was made by Benjamin Steenkamer.
-//Most of the code in these files started out as C code but eventually shifted into C++.
-//There is still some C type code in here, but right now I more concerned with implementing
-//other major features than updating code that already works.
 
 void errorExit(string error){
 	cout << error << endl << "Press ENTER to exit.";
@@ -193,18 +190,24 @@ void runFilter(int* const in_arr, int* out_arr, int const width, int const heigh
 		}
 }
 
-int main(){
+int main(int argc, char** argv){
 	cout << "P2/ASCII PGM 1024x1024 Filter" << endl << endl;
+
+	int height, width, grayscale;
+
+
+	if(argc != 2){
+		cout << "Must have one PGM image file as an argument." << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	string file_name(argv[1]);
 
 	//If you want bigger image files to be accpeted, change this allocated memory size accordingly.
 	//Keep in mind that you must have enough space for the additonal 1 pixel border that will go around the image during convolution.
 	int* image_array = (int*)malloc(sizeof(int) * 1048576);//1024 * 1024 = 1048576
-	int height, width, grayscale;
-	string file_name;
 
-	//***Uncomment the method of image loading you want to use. Leave one commented out.***
-	manualLoadImage(image_array, width, height, grayscale, file_name);
-	//directLoadImage(image_array, width, height, grayscale, file_name); //Must do ./filter.out < image.pgm
+	loadImage(image_array, width, height, grayscale, file_name);
 
 	int* expanded = add1pxBorder(image_array, width, height);
 	int* outimg = (int*)malloc(sizeof(int) * (height + 2) * (width + 2));
