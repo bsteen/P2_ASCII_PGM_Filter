@@ -38,11 +38,3 @@ Image files to be read in are given as command line arguments, and filtered imag
 You can convert other image formats to .PGM with free imaging software such as IrfanView (http://www.irfanview.com/) or GIMP (http://www.gimp.org/). Make sure you select the ASCII encoding option if you want the files to be accepted by this program.
 
 Some of the sample P2 .PGM files used in this project were obtained at: http://people.sc.fsu.edu/~jburkardt/data/pgma/pgma.html
-
-**Planned Features and Improvements/Fixes:**
-
-Clean up the code know that I know C++ better.
-
-Remove the arbitrary image size limit. To do this, I will replace the main data array with a vector. I will need to use CUDA specific vectors instead of the C++ STL ones in order for them to be passed to the kernels. http://docs.nvidia.com/cuda/thrust/index.html#vectors
-
-Currently, both methods of processing an image (CPU/Serial and GPU/CUDA/Parallel) pass through the image data in a linear fashion. In the future, I will implement a Fast Fourier Transformation (FFT) using CUDA's FFT library. This will hopefully increase the CUDA filter performance even more. I might add a FFT method for the CPU/Serial filters, but they would not be using the CUDA FFT library as I want them to only use the CPU. This is done for performance comparison sake (serial vs parallel). This will be done much later, after the fixes and OpenGL stuff is added.
